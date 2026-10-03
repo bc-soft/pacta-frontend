@@ -7,7 +7,7 @@ import { buildCreateProjectTxs } from '../../../lib/solana/instructions'
 import { projectPda } from '../../../lib/solana/pda'
 import { useProgram } from '../../../lib/solana/program'
 import { useSendAllAndSync, type TxPhase } from '../../../lib/solana/tx'
-import { useAuth } from '../../auth/useAuth'
+import { useBackendAuth } from '../../auth/useBackendAuth'
 import { toChainParams } from './chainParams'
 import type { ProjectForm } from './schema'
 
@@ -21,7 +21,7 @@ export function useCreateProject() {
   const { connection } = useConnection()
   const { publicKey } = useWallet()
   const program = useProgram()
-  const { ensureSignedIn } = useAuth()
+  const ensureBackendAuth = useBackendAuth()
   const sendAll = useSendAllAndSync()
 
   const missingConfig = !env.programId
@@ -42,7 +42,7 @@ export function useCreateProject() {
 
       // Texts (titles, criteria) live in the backend; the chain only has money, wallets and shares
       onPhase('signing')
-      if (!env.useFakeApi) await ensureSignedIn()
+      await ensureBackendAuth()
       await api
         .createProjectDraft({
           title: form.title,
@@ -59,7 +59,7 @@ export function useCreateProject() {
       if (signatures.length === 0) throw new UserFacingError('This contract is already on-chain.')
       return { pda: pda.toBase58(), signature: signatures[0] }
     },
-    [publicKey, program, missingConfig, ensureSignedIn, connection, sendAll],
+    [publicKey, program, missingConfig, ensureBackendAuth, connection, sendAll],
   )
 
   return { create, missingConfig }

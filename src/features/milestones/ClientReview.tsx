@@ -1,0 +1,78 @@
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { PublicKey } from '@solana/web3.js'
+import { useState } from 'react'
+import { useNavigate } from 'react-router'
+import { TxButton } from '../../components/TxButton'
+import { formatUsdc } from '../../lib/format'
+import type { ChainMilestone } from '../../lib/solana/accounts'
+import { buildAcceptMilestone } from '../../lib/solana/instructions'
+import { useProgram } from '../../lib/solana/program'
+import { useSendAndSync } from '../../lib/solana/tx'
+import type { ProjectView } from '../projects/useProject'
+
+type Mode = 'accept'
+
+/** Client: Accept / Request changes / Dispute for a submitted milestone. */
+export function ClientReview({ view, milestone }: { view: ProjectView; milestone: ChainMilestone }) {
+  const [mode, setMode] = useState<Mode>('accept')
+  const tabs: { id: Mode; label: string }[] = [{ id: 'accept', label: 'Accept & pay' }]
+
+  return (
+    <div className="rounded-lg border border-violet-200 bg-violet-50/60 p-4">
+      <p className="text-sm font-medium">The team has submitted this milestone. Does the work meet the “done when” criteria?</p>
+      <div className="mt-3 flex flex-wrap gap-2" role="tablist">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={mode === tab.id}
+            onClick={() => setMode(tab.id)}
+            className={`rounded-full px-3 py-1 text-sm font-medium ${
+              mode === tab.id ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-100'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div className="mt-4">{mode === 'accept' && <AcceptPanel view={view} milestone={milestone} />}</div>
+    </div>
+  )
+}
+
+function AcceptPanel({ view, milestone }: { view: ProjectView; milestone: ChainMilestone }) {
+  const { connection } = useConnection()
+  const { publicKey } = useWallet()
+  const program = useProgram()
+  const sendAndSync = useSendAndSync()
+  const navigate = useNavigate()
+  const project = new PublicKey(view.pda)
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-slate-600">
+        {formatUsdc(milestone.amount)} will be sent from escrow to the team right away, split as shown above. This
+        can&apos;t be undone.
+      </p>
+      <TxButton
+        label={`Accept & pay ${formatUsdc(milestone.amount)}`}
+        successText="Paid out"
+        disabled={!program}
+        run={(onPhase) =>
+          sendAndSync(
+            () =>
+              buildAcceptMilestone(program!, connection, publicKey!, view.state!.project.mint, {
+                project,
+                index: milestone.index,
+                allocations: milestone.allocations.map((a) => new PublicKey(a.wallet)),
+              }),
+            project,
+            onPhase,
+          )
+        }
+        onSuccess={(signature) => navigate(`/projects/${view.pda}/milestones/${milestone.index}/payment?tx=${signature}`)}
+      />
+    </div>
+  )
+}

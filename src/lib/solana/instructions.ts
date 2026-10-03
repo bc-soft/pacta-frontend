@@ -1,5 +1,5 @@
 import type { BN, Program } from '@coral-xyz/anchor'
-import { getAssociatedTokenAddressSync } from '@solana/spl-token'
+import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from '@solana/spl-token'
 import {
   PACKET_DATA_SIZE,
   PublicKey,
@@ -143,3 +143,41 @@ export const buildCancelMilestone = (program: Program, client: PublicKey, mint: 
       })
       .instruction(),
   )
+
+/** A team member marks the work as delivered (deliverable links are saved in the backend before this). */
+export const buildSubmitMilestone = (program: Program, member: PublicKey, m: MilestoneAccounts) =>
+  toTx(program.methods.submitMilestone(m.index).accountsPartial({ member, ...milestoneAccounts(m) }).instruction())
+
+export const buildRequestChanges = (program: Program, client: PublicKey, m: MilestoneAccounts) =>
+  toTx(program.methods.requestChanges(m.index).accountsPartial({ client, ...milestoneAccounts(m) }).instruction())
+
+/**
+ * Token accounts that receive a payout, in the given order, plus idempotent create instructions for the ones that
+ * don't exist yet (paid by `payer`) — so a payout never fails because someone never held USDC before.
+ */
+async function payoutAccounts(connection: Connection, payer: PublicKey, mint: PublicKey, owners: PublicKey[]) {
+  const atas = owners.map((owner) => getAssociatedTokenAddressSync(mint, owner))
+  const infos = await connection.getMultipleAccountsInfo(atas, 'confirmed')
+  const createMissing = atas.flatMap((ata, i) =>
+    infos[i] ? [] : [createAssociatedTokenAccountIdempotentInstruction(payer, ata, owners[i], mint)],
+  )
+  const remainingAccounts = atas.map((pubkey) => ({ pubkey, isSigner: false, isWritable: true }))
+  return { createMissing, remainingAccounts }
+}
+
+/** Client accepts → the program splits the milestone between members. remainingAccounts = member ATAs in allocations order. */
+export async function buildAcceptMilestone(
+  program: Program,
+  connection: Connection,
+  client: PublicKey,
+  mint: PublicKey,
+  m: MilestoneAccounts & { allocations: PublicKey[] },
+) {
+  const { createMissing, remainingAccounts } = await payoutAccounts(connection, client, mint, m.allocations)
+  const ix = await program.methods
+    .acceptMilestone(m.index)
+    .accountsPartial({ client, mint, ...milestoneAccounts(m) })
+    .remainingAccounts(remainingAccounts)
+    .instruction()
+  return new Transaction().add(...createMissing, ix)
+}

@@ -7,7 +7,10 @@ import { buildCancelMilestone } from '../../lib/solana/instructions'
 import { useProgram } from '../../lib/solana/program'
 import { useSendAndSync } from '../../lib/solana/tx'
 import type { ProjectView } from '../projects/useProject'
+import { Link } from 'react-router'
+import { ClientReview } from './ClientReview'
 import { FundMilestone } from './FundMilestone'
+import { SubmitMilestone } from './SubmitMilestone'
 
 /** What the connected wallet can do with this milestone right now — role × status. */
 export function MilestoneActions({ view, milestone }: { view: ProjectView; milestone: ChainMilestone }) {
@@ -50,7 +53,27 @@ export function MilestoneActions({ view, milestone }: { view: ProjectView; miles
           </div>
         )
       }
+      if (role === 'member') return <SubmitMilestone view={view} milestone={milestone} />
       return null
+
+    case 'changesRequested':
+      if (role === 'member') return <SubmitMilestone view={view} milestone={milestone} />
+      return <Hint>Waiting for the team to submit the updated work.</Hint>
+
+    case 'submitted':
+      if (role === 'client') return <ClientReview view={view} milestone={milestone} />
+      return <Hint>Submitted. Waiting for the client&apos;s review.</Hint>
+
+    case 'accepted':
+    case 'resolved':
+      return (
+        <Link
+          to={`/projects/${view.pda}/milestones/${milestone.index}/payment`}
+          className="text-sm font-medium text-emerald-700 hover:text-emerald-900"
+        >
+          See the payout →
+        </Link>
+      )
 
     default:
       return null
