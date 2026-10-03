@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router'
 import { PaymentResult } from '../features/milestones/PaymentResult'
+import { ProfileScreen } from '../features/profile/ProfileScreen'
 import { HealthScreen } from '../features/diagnostics/HealthScreen'
 import { HomeScreen } from '../features/home/HomeScreen'
 import { CreateProjectScreen } from '../features/projects/create/CreateProjectScreen'
@@ -14,6 +15,7 @@ export const router = createBrowserRouter([
       { path: 'projects/new', element: <CreateProjectScreen /> },
       { path: 'projects/:pda', element: <ProjectScreen /> },
       { path: 'projects/:pda/milestones/:index/payment', element: <PaymentResult /> },
+      { path: 'profile', element: <ProfileScreen /> },
       { path: 'health', element: <HealthScreen /> },
     ],
   },
