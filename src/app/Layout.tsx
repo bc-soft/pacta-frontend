@@ -2,12 +2,15 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { NavLink, Outlet } from 'react-router'
 import { env } from '../env'
 import { useAuth } from '../features/auth/useAuth'
+import { NotificationsMenu } from '../features/notifications/NotificationsMenu'
+import { useLiveNotifications } from '../features/notifications/useLiveNotifications'
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   `text-sm font-medium ${isActive ? 'text-slate-900' : 'text-slate-500 hover:text-slate-900'}`
 
 export function Layout() {
   const { sessionExpired, signIn } = useAuth()
+  useLiveNotifications()
 
   return (
     <div className="min-h-screen">
@@ -29,7 +32,10 @@ export function Layout() {
               </NavLink>
             </nav>
           </div>
-          <WalletMultiButton />
+          <div className="flex items-center gap-2">
+            <NotificationsMenu />
+            <WalletMultiButton />
+          </div>
         </div>
       </header>
 
