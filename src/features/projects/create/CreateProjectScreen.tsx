@@ -159,9 +159,8 @@ function ProjectCreated({ project, title }: { project: CreatedProject; title: st
       </p>
       <div className="mt-6 flex flex-col items-center gap-3">
         <ExplorerLink signature={project.signature} />
-        <ExplorerLink address={project.pda}>See the contract account ↗</ExplorerLink>
-        <Link to="/" className={secondaryButtonClass}>
-          Back to projects
+        <Link to={`/projects/${project.pda}`} className={primaryButtonClass}>
+          Open the project
         </Link>
       </div>
     </section>

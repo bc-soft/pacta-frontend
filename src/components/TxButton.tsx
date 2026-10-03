@@ -15,10 +15,24 @@ interface Props {
   onSuccess?: (signature: string) => void
   successText?: string
   disabled?: boolean
+  variant?: 'primary' | 'secondary' | 'danger'
+}
+
+const VARIANTS = {
+  primary: 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-500',
+  secondary: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
+  danger: 'border border-rose-300 bg-white text-rose-700 hover:bg-rose-50',
 }
 
 /** Every transactional button: idle → Confirm in wallet → Confirming… → success with Explorer link, or a readable error. */
-export function TxButton({ label, run, onSuccess, successText = 'Confirmed on-chain', disabled }: Props) {
+export function TxButton({
+  label,
+  run,
+  onSuccess,
+  successText = 'Confirmed on-chain',
+  disabled,
+  variant = 'primary',
+}: Props) {
   const [state, setState] = useState<State>({ phase: 'idle' })
   const busy = state.phase === 'signing' || state.phase === 'confirming'
 
@@ -41,7 +55,7 @@ export function TxButton({ label, run, onSuccess, successText = 'Confirmed on-ch
         type="button"
         onClick={handleClick}
         disabled={disabled || busy}
-        className="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className={`rounded-lg px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${VARIANTS[variant]}`}
       >
         {state.phase === 'signing' ? 'Confirm in wallet…' : state.phase === 'confirming' ? 'Confirming…' : label}
       </button>

@@ -14,7 +14,14 @@ export class ApiError extends Error {
 
 // JWT lives in memory; AuthProvider mirrors it to sessionStorage so F5 doesn't log the user out.
 let token: string | null = null
+let wallet: string | null = null
 let onUnauthorized: (() => void) | null = null
+
+/** Connected wallet — the real backend knows it from the JWT; fakeApi needs it explicitly. */
+export const setApiWallet = (value: string | null) => {
+  wallet = value
+}
+export const getApiWallet = () => wallet
 
 export const setAuthToken = (value: string | null) => {
   token = value

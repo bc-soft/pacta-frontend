@@ -46,11 +46,32 @@ export interface MilestoneMeta extends MilestoneDraft {
   index: number
   description?: string
   deliverables?: Deliverable[]
+  /** Proposed (not yet in the agreed contract): client comments sent with "Request changes" */
+  comments?: MilestoneComment[]
+  dispute?: { evidence: DisputeEvidence[] }
 }
+
+export interface MilestoneComment {
+  wallet: string
+  comment: string
+  at: string
+}
+
+export interface DisputeEvidenceInput {
+  argument: string
+  links: string[]
+}
+
+export interface DisputeEvidence extends DisputeEvidenceInput {
+  wallet: string
+  at: string
+}
+
+export type DeliverableType = 'figma' | 'code' | 'preview' | 'document' | 'other'
 
 export interface Deliverable {
   url: string
-  type: string
+  type: DeliverableType
   note?: string
 }
 

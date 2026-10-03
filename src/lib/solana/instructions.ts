@@ -97,3 +97,9 @@ function serializedSize(tx: Transaction, feePayer: PublicKey): number {
   tx.recentBlockhash = PublicKey.default.toBase58() // placeholder, same size as a real blockhash
   return 1 + 64 + tx.serializeMessage().length
 }
+
+const toTx = async (ix: Promise<TransactionInstruction>) => new Transaction().add(await ix)
+
+/** A team member confirms the contract; after the last one the project becomes Active. */
+export const buildAcceptContract = (program: Program, project: PublicKey, member: PublicKey) =>
+  toTx(program.methods.acceptContract().accountsPartial({ member, project }).instruction())

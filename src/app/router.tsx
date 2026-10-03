@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router'
 import { HealthScreen } from '../features/diagnostics/HealthScreen'
 import { HomeScreen } from '../features/home/HomeScreen'
 import { CreateProjectScreen } from '../features/projects/create/CreateProjectScreen'
+import { ProjectScreen } from '../features/projects/dashboard/ProjectScreen'
 import { Layout } from './Layout'
 
 export const router = createBrowserRouter([
@@ -10,6 +11,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomeScreen /> },
       { path: 'projects/new', element: <CreateProjectScreen /> },
+      { path: 'projects/:pda', element: <ProjectScreen /> },
       { path: 'health', element: <HealthScreen /> },
     ],
   },
