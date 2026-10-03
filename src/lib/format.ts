@@ -1,5 +1,5 @@
 import type { BN } from '@coral-xyz/anchor'
-import { USDC_DECIMALS } from './solana/connection'
+import { USDC_DECIMALS } from './solana/amounts'
 
 const usdcFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
 

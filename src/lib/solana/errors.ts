@@ -1,5 +1,6 @@
 import { AnchorError } from '@coral-xyz/anchor'
 import { WalletError } from '@solana/wallet-adapter-base'
+import { ApiError } from '../api/client'
 
 // Anchor error code name → plain English shown to the user. Extend as the program grows.
 const PROGRAM_ERRORS: Record<string, string> = {
@@ -10,6 +11,7 @@ const PROGRAM_ERRORS: Record<string, string> = {
 export type TxErrorKind = 'cancelled' | 'error'
 
 export function describeTxError(error: unknown): { kind: TxErrorKind; message: string } {
+  if (error instanceof UserFacingError || error instanceof ApiError) return { kind: 'error', message: error.message }
   if (isWalletRejection(error)) return { kind: 'cancelled', message: 'Cancelled in wallet' }
 
   const anchorError = error instanceof AnchorError ? error : tryParseAnchorError(error)
@@ -39,3 +41,6 @@ function tryParseAnchorError(error: unknown): AnchorError | null {
     return null
   }
 }
+
+/** An error whose message is already safe and meaningful to show to the user. */
+export class UserFacingError extends Error {}

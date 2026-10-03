@@ -1,6 +1,8 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router'
+import { primaryButtonClass } from '../../components/form'
 import { api } from '../../lib/api'
 
 export function HomeScreen() {
@@ -30,7 +32,12 @@ export function HomeScreen() {
 
   return (
     <section>
-      <h1 className="text-2xl font-bold tracking-tight">Your projects</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight">Your projects</h1>
+        <Link to="/projects/new" className={primaryButtonClass}>
+          Create project
+        </Link>
+      </div>
       {projects.isPending && <p className="mt-4 text-slate-500">Loading…</p>}
       {projects.isError && <p className="mt-4 text-rose-700">{projects.error.message}</p>}
       {projects.data?.length === 0 && (

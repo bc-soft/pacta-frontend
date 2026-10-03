@@ -6,14 +6,25 @@ import { api } from '../api'
 
 export type TxPhase = 'idle' | 'signing' | 'confirming'
 
-/**
- * One path for every program instruction: wallet signs → confirm on chain → tell backend to sync → refetch chain state.
- * The backend sync is best effort — the chain is the source of truth.
- */
+/** After a confirmed tx: tell the backend to sync (best effort — the chain is the source of truth) and refetch. */
+function useAfterConfirmed() {
+  const queryClient = useQueryClient()
+
+  return useCallback(
+    async (pda: PublicKey, signatures: string[]) => {
+      for (const signature of signatures) await api.syncProject(pda.toBase58(), signature).catch(() => {})
+      await queryClient.invalidateQueries({ queryKey: ['chain', pda.toBase58()] })
+      await queryClient.invalidateQueries({ queryKey: ['project', pda.toBase58()] })
+    },
+    [queryClient],
+  )
+}
+
+/** One path for every program instruction: wallet signs → confirm on chain → backend sync → refetch chain state. */
 export function useSendAndSync() {
   const { connection } = useConnection()
   const { sendTransaction } = useWallet()
-  const queryClient = useQueryClient()
+  const afterConfirmed = useAfterConfirmed()
 
   return useCallback(
     async (
@@ -32,11 +43,54 @@ export function useSendAndSync() {
       const { value } = await connection.confirmTransaction({ signature, ...latest }, 'confirmed')
       if (value.err) throw new Error(`Transaction failed: ${JSON.stringify(value.err)}`)
 
-      await api.syncProject(pda.toBase58(), signature).catch(() => {})
-      await queryClient.invalidateQueries({ queryKey: ['chain', pda.toBase58()] })
-      await queryClient.invalidateQueries({ queryKey: ['project', pda.toBase58()] })
+      await afterConfirmed(pda, [signature])
       return signature
     },
-    [connection, sendTransaction, queryClient],
+    [connection, sendTransaction, afterConfirmed],
+  )
+}
+
+/**
+ * Several transactions that must land in order (e.g. createProject, then milestones that don't fit in the same tx).
+ * One wallet popup via signAllTransactions; each tx is confirmed before the next is sent.
+ */
+export function useSendAllAndSync() {
+  const { connection } = useConnection()
+  const { publicKey, signAllTransactions } = useWallet()
+  const afterConfirmed = useAfterConfirmed()
+
+  return useCallback(
+    async (
+      build: () => Promise<Transaction[]>,
+      pda: PublicKey,
+      onPhase?: (phase: TxPhase) => void,
+    ): Promise<string[]> => {
+      if (!publicKey || !signAllTransactions) throw new Error('Wallet does not support signing multiple transactions')
+
+      onPhase?.('signing')
+      const txs = await build()
+      const latest = await connection.getLatestBlockhash('confirmed')
+      for (const tx of txs) {
+        tx.recentBlockhash = latest.blockhash
+        tx.feePayer = publicKey
+      }
+      const signed = await signAllTransactions(txs)
+
+      onPhase?.('confirming')
+      const signatures: string[] = []
+      try {
+        for (const tx of signed) {
+          const signature = await connection.sendRawTransaction(tx.serialize())
+          const { value } = await connection.confirmTransaction({ signature, ...latest }, 'confirmed')
+          if (value.err) throw new Error(`Transaction failed: ${JSON.stringify(value.err)}`)
+          signatures.push(signature)
+        }
+      } finally {
+        // Sync whatever did land, even if a later tx failed
+        if (signatures.length > 0) await afterConfirmed(pda, signatures)
+      }
+      return signatures
+    },
+    [connection, publicKey, signAllTransactions, afterConfirmed],
   )
 }
