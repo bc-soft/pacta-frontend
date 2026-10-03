@@ -28,6 +28,21 @@ Before first use, open `VITE_API_URL` (https://localhost:8443) in the browser an
 | `VITE_MERCURE_URL` | `https://localhost:8443/.well-known/mercure` |
 | `VITE_USE_FAKE_API` | `true` = in-memory `fakeApi.ts` for the backend endpoints that are still being built |
 
+## Screens
+
+| Route | Who | What |
+|---|---|---|
+| `/` | everyone | Connect wallet, list of my projects (from chain + backend titles) |
+| `/projects/new` | client | Wizard: project → team → milestones & split → arbiter → “What exactly are you signing?” |
+| `/projects/:pda` | everyone | Dashboard: signatures, escrow balance, milestones with role-based actions, activity |
+| `/projects/:pda/milestones/:i/payment` | everyone | Payment result — who got what + one Explorer link |
+| `/projects/:pda/milestones/:i/dispute` | arbiter | Both sides, agreed criteria, one of five decisions |
+| `/profile` | everyone | Name, avatar, bio, skills |
+| `/health` | dev | Pre-demo checklist |
+
+All on-chain layout assumptions (account fields, status enums, instruction account names) live in
+`src/lib/solana/accounts.ts` and `src/lib/solana/instructions.ts` — check them against the IDL first.
+
 ## Program IDL
 
 Copy `target/idl/pacta.json` and `target/types/pacta.ts` from the program repo to `src/lib/solana/idl/` (both are committed).
