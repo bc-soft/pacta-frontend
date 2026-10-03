@@ -15,6 +15,7 @@ function useAfterConfirmed() {
       for (const signature of signatures) await api.syncProject(pda.toBase58(), signature).catch(() => {})
       await queryClient.invalidateQueries({ queryKey: ['chain', pda.toBase58()] })
       await queryClient.invalidateQueries({ queryKey: ['project', pda.toBase58()] })
+      await queryClient.invalidateQueries({ queryKey: ['history', pda.toBase58()] })
     },
     [queryClient],
   )

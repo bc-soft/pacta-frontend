@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { MilestoneActions } from '../../milestones/MilestoneActions'
 import { parseAddress, useProjectView } from '../useProject'
+import { ActivityTimeline } from './ActivityTimeline'
 import { ContractSigning } from './ContractSigning'
 import { EscrowCard } from './EscrowCard'
 import { MilestoneList } from './MilestoneList'
@@ -37,6 +38,7 @@ export function ProjectScreen() {
       {pending && <ContractSigning view={view} />}
       <EscrowCard state={view.state} />
       <MilestoneList view={view} renderActions={(m) => <MilestoneActions view={view} milestone={m} />} />
+      <ActivityTimeline pda={pda} />
     </div>
   )
 }
