@@ -7,6 +7,7 @@ import {
   type Connection,
   type TransactionInstruction,
 } from '@solana/web3.js'
+import type { Resolution } from './accounts'
 import { milestonePda, projectPda, vaultPda } from './pda'
 
 // Argument shapes follow the agreed program interface (frontend-brief §5.2).
@@ -177,6 +178,27 @@ export async function buildAcceptMilestone(
   const ix = await program.methods
     .acceptMilestone(m.index)
     .accountsPartial({ client, mint, ...milestoneAccounts(m) })
+    .remainingAccounts(remainingAccounts)
+    .instruction()
+  return new Transaction().add(...createMissing, ix)
+}
+
+/** Client or a team member escalates a milestone to the arbiter. */
+export const buildOpenDispute = (program: Program, signer: PublicKey, m: MilestoneAccounts) =>
+  toTx(program.methods.openDispute(m.index).accountsPartial({ signer, ...milestoneAccounts(m) }).instruction())
+
+/** Arbiter decides. remainingAccounts = member ATAs in allocations order, then the client's ATA (for the refund). */
+export async function buildResolveDispute(
+  program: Program,
+  connection: Connection,
+  arbiter: PublicKey,
+  mint: PublicKey,
+  m: MilestoneAccounts & { allocations: PublicKey[]; client: PublicKey; resolution: Resolution },
+) {
+  const { createMissing, remainingAccounts } = await payoutAccounts(connection, arbiter, mint, [...m.allocations, m.client])
+  const ix = await program.methods
+    .resolveDispute(m.index, { [m.resolution]: {} })
+    .accountsPartial({ arbiter, mint, ...milestoneAccounts(m) })
     .remainingAccounts(remainingAccounts)
     .instruction()
   return new Transaction().add(...createMissing, ix)

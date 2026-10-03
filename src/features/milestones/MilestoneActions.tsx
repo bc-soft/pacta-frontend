@@ -8,6 +8,7 @@ import { useProgram } from '../../lib/solana/program'
 import { useSendAndSync } from '../../lib/solana/tx'
 import type { ProjectView } from '../projects/useProject'
 import { Link } from 'react-router'
+import { AddEvidenceForm, OpenDisputeForm } from '../disputes/DisputeForms'
 import { ClientReview } from './ClientReview'
 import { FundMilestone } from './FundMilestone'
 import { SubmitMilestone } from './SubmitMilestone'
@@ -57,12 +58,50 @@ export function MilestoneActions({ view, milestone }: { view: ProjectView; miles
       return null
 
     case 'changesRequested':
-      if (role === 'member') return <SubmitMilestone view={view} milestone={milestone} />
+      if (role === 'member') {
+        return (
+          <div className="space-y-3">
+            <SubmitMilestone view={view} milestone={milestone} />
+            <TeamDispute view={view} milestone={milestone} />
+          </div>
+        )
+      }
       return <Hint>Waiting for the team to submit the updated work.</Hint>
 
     case 'submitted':
       if (role === 'client') return <ClientReview view={view} milestone={milestone} />
+      if (role === 'member') {
+        return (
+          <div className="space-y-3">
+            <Hint>Submitted. Waiting for the client&apos;s review.</Hint>
+            <TeamDispute view={view} milestone={milestone} />
+          </div>
+        )
+      }
       return <Hint>Submitted. Waiting for the client&apos;s review.</Hint>
+
+    case 'disputed':
+      return (
+        <div className="space-y-3 rounded-lg border border-rose-200 bg-rose-50/60 p-4">
+          <p className="text-sm font-medium text-rose-900">
+            In dispute — the arbiter decides how this milestone&apos;s money is split.
+          </p>
+          <Link
+            to={`/projects/${view.pda}/milestones/${milestone.index}/dispute`}
+            className="inline-block text-sm font-semibold text-rose-800 underline"
+          >
+            {role === 'arbiter' ? 'Review both sides and decide →' : 'See the dispute →'}
+          </Link>
+          {(role === 'client' || role === 'member') && (
+            <details>
+              <summary className="cursor-pointer text-sm font-medium text-slate-700">Add to your side of the story</summary>
+              <div className="mt-3">
+                <AddEvidenceForm view={view} milestone={milestone} />
+              </div>
+            </details>
+          )}
+        </div>
+      )
 
     case 'accepted':
     case 'resolved':
@@ -82,4 +121,17 @@ export function MilestoneActions({ view, milestone }: { view: ProjectView; miles
 
 export function Hint({ children }: { children: ReactNode }) {
   return <p className="text-sm text-slate-500">{children}</p>
+}
+
+/** The team can escalate too (e.g. the client keeps asking for changes outside the agreed criteria). */
+function TeamDispute({ view, milestone }: { view: ProjectView; milestone: ChainMilestone }) {
+  if (!view.state!.project.arbiter) return null
+  return (
+    <details className="rounded-lg border border-slate-200 p-3">
+      <summary className="cursor-pointer text-sm font-medium text-slate-700">Disagree? Ask the arbiter to decide</summary>
+      <div className="mt-3">
+        <OpenDisputeForm view={view} milestone={milestone} />
+      </div>
+    </details>
+  )
 }

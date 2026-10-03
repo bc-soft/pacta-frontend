@@ -5,6 +5,7 @@ import { inputClass } from '../../components/form'
 import { api } from '../../lib/api'
 import { UserFacingError } from '../../lib/solana/errors'
 import { useBackendAuth } from '../auth/useBackendAuth'
+import { OpenDisputeForm } from '../disputes/DisputeForms'
 import { useNavigate } from 'react-router'
 import { TxButton } from '../../components/TxButton'
 import { formatUsdc } from '../../lib/format'
@@ -14,7 +15,7 @@ import { useProgram } from '../../lib/solana/program'
 import { useSendAndSync } from '../../lib/solana/tx'
 import type { ProjectView } from '../projects/useProject'
 
-type Mode = 'accept' | 'changes'
+type Mode = 'accept' | 'changes' | 'dispute'
 
 /** Client: Accept / Request changes / Dispute for a submitted milestone. */
 export function ClientReview({ view, milestone }: { view: ProjectView; milestone: ChainMilestone }) {
@@ -22,6 +23,7 @@ export function ClientReview({ view, milestone }: { view: ProjectView; milestone
   const tabs: { id: Mode; label: string }[] = [
     { id: 'accept', label: 'Accept & pay' },
     { id: 'changes', label: 'Request changes' },
+    ...(view.state!.project.arbiter ? [{ id: 'dispute' as const, label: 'Dispute' }] : []),
   ]
 
   return (
@@ -46,6 +48,7 @@ export function ClientReview({ view, milestone }: { view: ProjectView; milestone
       <div className="mt-4">
         {mode === 'accept' && <AcceptPanel view={view} milestone={milestone} />}
         {mode === 'changes' && <RequestChangesPanel view={view} milestone={milestone} />}
+        {mode === 'dispute' && <OpenDisputeForm view={view} milestone={milestone} />}
       </div>
     </div>
   )
