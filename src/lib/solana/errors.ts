@@ -20,6 +20,10 @@ export function describeTxError(error: unknown): { kind: TxErrorKind; message: s
     return { kind: 'error', message: PROGRAM_ERRORS[code] ?? anchorError.error.errorMessage }
   }
 
+  // Fee payer has never received SOL on this cluster (fresh wallet on devnet)
+  if (error instanceof Error && /no record of a prior credit|AccountNotFound/i.test(error.message)) {
+    return { kind: 'error', message: 'Your wallet has no SOL on devnet to pay the network fee. Get some at faucet.solana.com and try again.' }
+  }
   if (error instanceof Error && /insufficient (funds|lamports)/i.test(error.message)) {
     return { kind: 'error', message: 'Not enough funds in your wallet' }
   }
