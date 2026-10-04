@@ -8,7 +8,7 @@ import { StatusPill } from '../../components/StatusPill'
 import { api } from '../../lib/api'
 import { PROJECT_STATUS_LABELS } from '../../lib/labels'
 import { ROLE_LABELS, roleIn } from '../../lib/roles'
-import { fetchProjectsForWallet } from '../../lib/solana/accounts'
+import { fetchProjectsByAddress } from '../../lib/solana/accounts'
 import { useProgram } from '../../lib/solana/program'
 
 export function HomeScreen() {
@@ -16,17 +16,19 @@ export function HomeScreen() {
   const program = useProgram()
   const wallet = publicKey?.toBase58()
 
-  // Chain says which projects exist and my role; the backend adds titles. Either may be missing.
-  const chain = useQuery({
-    queryKey: ['chain', 'projects', wallet],
-    queryFn: () => fetchProjectsForWallet(program!, wallet!),
-    enabled: !!wallet && !!program,
-  })
+  // The backend knows which projects involve this wallet (and their titles); the chain says their real status
+  // and my role. Projects only exist here once their draft was saved in the backend.
   const meta = useQuery({
     queryKey: ['projects', wallet],
     queryFn: () => api.projects(wallet!),
     enabled: !!wallet,
     retry: false,
+  })
+  const addresses = (meta.data ?? []).map((p) => p.pda)
+  const chain = useQuery({
+    queryKey: ['chain', 'projects', addresses],
+    queryFn: () => fetchProjectsByAddress(program!, addresses),
+    enabled: !!program && meta.isSuccess,
   })
 
   if (!wallet) {

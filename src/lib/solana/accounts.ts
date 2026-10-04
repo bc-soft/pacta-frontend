@@ -114,7 +114,6 @@ export function decodeMilestone(address: PublicKey, raw: RawMilestone): ChainMil
 type AccountClient = {
   fetchNullable(address: PublicKey): Promise<unknown>
   fetchMultiple(addresses: PublicKey[]): Promise<unknown[]>
-  all(): Promise<{ publicKey: PublicKey; account: unknown }[]>
 }
 const accountClient = (program: Program, name: 'project' | 'milestone') =>
   (program.account as unknown as Record<string, AccountClient>)[name]
@@ -141,10 +140,13 @@ export async function fetchProjectState(
   return { project, milestones, vaultBalance }
 }
 
-/** Every project where the wallet is client, member or arbiter. Devnet scale — fetches all and filters locally. */
-export async function fetchProjectsForWallet(program: Program, wallet: string): Promise<ChainProject[]> {
-  const all = await accountClient(program, 'project').all()
-  return all
-    .map(({ publicKey, account }) => decodeProject(publicKey, account as RawProject))
-    .filter((p) => p.client === wallet || p.arbiter === wallet || p.members.some((m) => m.wallet === wallet))
+/**
+ * Chain state of the given projects (one getMultipleAccounts call). Which projects belong to a wallet comes
+ * from the backend: scanning the program with getProgramAccounts is blocked on most free RPC tiers.
+ */
+export async function fetchProjectsByAddress(program: Program, addresses: string[]): Promise<ChainProject[]> {
+  if (addresses.length === 0) return []
+  const keys = addresses.map((a) => new PublicKey(a))
+  const raw = await accountClient(program, 'project').fetchMultiple(keys)
+  return raw.flatMap((account, i) => (account ? [decodeProject(keys[i], account as RawProject)] : []))
 }
