@@ -2,9 +2,20 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { Transaction, type PublicKey, type VersionedTransaction } from '@solana/web3.js'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
+import { useAuth } from '../../features/auth/useAuth'
 import { api } from '../api'
 
 export type TxPhase = 'idle' | 'signing' | 'confirming'
+
+/**
+ * Backend sync needs a session, so the first transaction of a session also asks the wallet to sign in.
+ * Best effort: if the user declines or the backend is down, the transaction still goes through — the backend
+ * catches up from the chain on its own.
+ */
+function useBestEffortSignIn() {
+  const { ensureSignedIn } = useAuth()
+  return useCallback(() => ensureSignedIn().catch(() => {}), [ensureSignedIn])
+}
 
 /** After a confirmed tx: tell the backend to sync (best effort — the chain is the source of truth) and refetch. */
 function useAfterConfirmed() {
@@ -26,6 +37,7 @@ export function useSendAndSync() {
   const { connection } = useConnection()
   const { sendTransaction } = useWallet()
   const afterConfirmed = useAfterConfirmed()
+  const signIn = useBestEffortSignIn()
 
   return useCallback(
     async (
@@ -34,6 +46,7 @@ export function useSendAndSync() {
       onPhase?: (phase: TxPhase) => void,
     ): Promise<string> => {
       onPhase?.('signing')
+      await signIn()
       const tx = await build()
       const latest = await connection.getLatestBlockhash('confirmed')
       // Pin the blockhash we confirm against, so confirmation expiry matches the signed tx
@@ -47,7 +60,7 @@ export function useSendAndSync() {
       await afterConfirmed(pda, [signature])
       return signature
     },
-    [connection, sendTransaction, afterConfirmed],
+    [connection, sendTransaction, afterConfirmed, signIn],
   )
 }
 
@@ -59,6 +72,7 @@ export function useSendAllAndSync() {
   const { connection } = useConnection()
   const { publicKey, signAllTransactions } = useWallet()
   const afterConfirmed = useAfterConfirmed()
+  const signIn = useBestEffortSignIn()
 
   return useCallback(
     async (
@@ -69,6 +83,7 @@ export function useSendAllAndSync() {
       if (!publicKey || !signAllTransactions) throw new Error('Wallet does not support signing multiple transactions')
 
       onPhase?.('signing')
+      await signIn()
       const txs = await build()
       const latest = await connection.getLatestBlockhash('confirmed')
       for (const tx of txs) {
@@ -92,6 +107,6 @@ export function useSendAllAndSync() {
       }
       return signatures
     },
-    [connection, publicKey, signAllTransactions, afterConfirmed],
+    [connection, publicKey, signAllTransactions, afterConfirmed, signIn],
   )
 }
