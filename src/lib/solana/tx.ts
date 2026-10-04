@@ -1,10 +1,11 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { Transaction, type PublicKey, type VersionedTransaction } from '@solana/web3.js'
+import type { PublicKey, Transaction } from '@solana/web3.js'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { useAuth } from '../../features/auth/useAuth'
 import { api } from '../api'
 import { confirmSignature, sendSignedTransaction } from './confirm'
+import { signForCluster } from './sign'
 
 export type TxPhase = 'idle' | 'signing' | 'confirming'
 
@@ -35,49 +36,26 @@ function useAfterConfirmed() {
 
 /** One path for every program instruction: wallet signs → confirm on chain → backend sync → refetch chain state. */
 export function useSendAndSync() {
-  const { connection } = useConnection()
-  const { publicKey, signTransaction } = useWallet()
-  const afterConfirmed = useAfterConfirmed()
-  const signIn = useBestEffortSignIn()
-
+  const sendAll = useSendAllAndSync()
   return useCallback(
-    async (
-      build: () => Promise<Transaction | VersionedTransaction>,
-      pda: PublicKey,
-      onPhase?: (phase: TxPhase) => void,
-    ): Promise<string> => {
-      onPhase?.('signing')
-      await signIn()
-      if (!publicKey || !signTransaction) throw new Error('Wallet does not support signing transactions')
-      const tx = await build()
-      const latest = await connection.getLatestBlockhash('confirmed')
-      // Pin the blockhash we confirm against, so confirmation expiry matches the signed tx
-      if (tx instanceof Transaction) {
-        if (!tx.recentBlockhash) tx.recentBlockhash = latest.blockhash
-        tx.feePayer ??= publicKey
-      }
-      // Wallet only signs; we send through our own RPC. Phantom's signAndSendTransaction hides program
-      // errors behind "Unexpected error", while our preflight returns the logs describeTxError can read.
-      const signed = await signTransaction(tx)
-      const signature = await sendSignedTransaction(connection, signed.serialize())
-
-      onPhase?.('confirming')
-      await confirmSignature(connection, signature, latest.lastValidBlockHeight)
-
-      await afterConfirmed(pda, [signature])
+    async (build: () => Promise<Transaction>, pda: PublicKey, onPhase?: (phase: TxPhase) => void): Promise<string> => {
+      const [signature] = await sendAll(async () => [await build()], pda, onPhase)
       return signature
     },
-    [connection, publicKey, signTransaction, afterConfirmed, signIn],
+    [sendAll],
   )
 }
 
 /**
  * Several transactions that must land in order (e.g. createProject, then milestones that don't fit in the same tx).
- * One wallet popup via signAllTransactions; each tx is confirmed before the next is sent.
+ * One wallet popup; each tx is confirmed before the next is sent.
+ *
+ * The wallet only signs; we send through our own RPC. Phantom's signAndSendTransaction hides program errors
+ * behind "Unexpected error", while our preflight returns the logs describeTxError can read.
  */
 export function useSendAllAndSync() {
   const { connection } = useConnection()
-  const { publicKey, signAllTransactions } = useWallet()
+  const wallet = useWallet()
   const afterConfirmed = useAfterConfirmed()
   const signIn = useBestEffortSignIn()
 
@@ -87,7 +65,8 @@ export function useSendAllAndSync() {
       pda: PublicKey,
       onPhase?: (phase: TxPhase) => void,
     ): Promise<string[]> => {
-      if (!publicKey || !signAllTransactions) throw new Error('Wallet does not support signing multiple transactions')
+      const { publicKey } = wallet
+      if (!publicKey) throw new Error('Connect your wallet first')
 
       onPhase?.('signing')
       await signIn()
@@ -97,7 +76,7 @@ export function useSendAllAndSync() {
         tx.recentBlockhash = latest.blockhash
         tx.feePayer = publicKey
       }
-      const signed = await signAllTransactions(txs)
+      const signed = await signForCluster(wallet, txs)
 
       onPhase?.('confirming')
       const signatures: string[] = []
@@ -113,6 +92,6 @@ export function useSendAllAndSync() {
       }
       return signatures
     },
-    [connection, publicKey, signAllTransactions, afterConfirmed, signIn],
+    [connection, wallet, afterConfirmed, signIn],
   )
 }
