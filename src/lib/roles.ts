@@ -17,3 +17,18 @@ export function roleIn(project: ChainProject, wallet: string | null | undefined)
   if (project.arbiter === wallet) return 'arbiter'
   return 'viewer'
 }
+
+/** A team member's discipline. On-chain it is a u8 — the index in this list (program: MAX_ROLE = 4). */
+export const MEMBER_ROLES = ['backend', 'frontend', 'design', 'qa', 'other'] as const
+export type MemberRole = (typeof MEMBER_ROLES)[number]
+
+export const MEMBER_ROLE_LABELS: Record<MemberRole, string> = {
+  backend: 'Backend developer',
+  frontend: 'Frontend developer',
+  design: 'Designer',
+  qa: 'QA / tester',
+  other: 'Other',
+}
+
+export const memberRoleToU8 = (role: MemberRole): number => MEMBER_ROLES.indexOf(role)
+export const memberRoleFromU8 = (value: number): MemberRole => MEMBER_ROLES[value] ?? 'other'

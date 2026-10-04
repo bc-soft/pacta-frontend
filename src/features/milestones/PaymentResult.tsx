@@ -5,7 +5,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { ExplorerLink } from '../../components/ExplorerLink'
 import { formatUsdc, shortAddress } from '../../lib/format'
-import { RESOLUTION_LABELS, RESOLUTION_TEAM_BPS } from '../../lib/labels'
+import { RESOLUTION_LABELS, teamPayoutBps } from '../../lib/labels'
+import { MEMBER_ROLE_LABELS } from '../../lib/roles'
 import { shareOf } from '../../lib/solana/amounts'
 import { Avatar } from '../profile/Avatar'
 import { useProfiles } from '../profile/useProfiles'
@@ -19,7 +20,8 @@ export function PaymentResult() {
   const view = useProjectView(pda)
   const { connection } = useConnection()
   const milestone = view.state?.milestones.find((m) => m.index === Number(index))
-  const paid = milestone?.status === 'accepted' || milestone?.status === 'resolved'
+  // Paid by the client's acceptance or the arbiter; cancelled with a resolution = arbiter refunded the client in full
+  const paid = milestone?.status === 'paid' || (milestone?.status === 'cancelled' && !!milestone.resolution)
 
   // Opened later (no ?tx=): the payout is the last transaction that touched the milestone account
   const lastTx = useQuery({
@@ -34,10 +36,13 @@ export function PaymentResult() {
   if (view.chain.isPending) return <p className="text-slate-500">Loading payment from Solana…</p>
   if (!view.state || !milestone) return <p className="text-slate-600">Milestone not found.</p>
 
-  const teamBps = milestone.status === 'resolved' && milestone.resolution ? RESOLUTION_TEAM_BPS[milestone.resolution] : 10_000
+  const teamBps = paid ? teamPayoutBps(milestone) : 10_000
   const teamTotal = shareOf(milestone.amount, teamBps)
   const refund = milestone.amount.sub(teamTotal)
-  const roleOf = (wallet: string) => view.state!.project.members.find((m) => m.wallet === wallet)?.role
+  const roleOf = (wallet: string) => {
+    const role = view.state!.project.members.find((m) => m.wallet === wallet)?.role
+    return role ? MEMBER_ROLE_LABELS[role] : undefined
+  }
 
   const rows = milestone.allocations.map((a) => ({
     wallet: a.wallet,
@@ -63,7 +68,7 @@ export function PaymentResult() {
           {formatUsdc(teamTotal)} {paid ? 'distributed' : 'to distribute'}
         </h1>
         <p className="mt-2 text-slate-600">
-          {milestone.status === 'resolved' && milestone.resolution
+          {milestone.resolution
             ? `Decided by the arbiter: ${RESOLUTION_LABELS[milestone.resolution]}.`
             : 'Split automatically by the contract, exactly as agreed before work started.'}
         </p>

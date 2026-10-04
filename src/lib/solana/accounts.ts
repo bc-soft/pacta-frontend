@@ -1,26 +1,27 @@
 import { BN, type Program } from '@coral-xyz/anchor'
 import { PublicKey, type Connection } from '@solana/web3.js'
+import { memberRoleFromU8, type MemberRole } from '../roles'
 import { milestonePda, vaultPda } from './pda'
 
 // Domain view of the program accounts. Everything the UI knows about the on-chain layout lives in this file.
-// The Raw* shapes are the assumed IDL layout (agreed interface, frontend-brief §5) — once pacta.json lands,
-// replace them with IdlAccounts<Pacta>['project'|'milestone'] and fix the mapping below if names differ.
+// Raw* shapes mirror the IDL (idl/pacta.json, programs/pacta/src/state.rs) as decoded by Anchor (camelCase).
 
-export type ProjectStatus = 'pending' | 'active' | 'completed' | 'cancelled'
+// Enum variants in declaration order of the program (Anchor decodes them as camelCase keys)
+export type ProjectStatus = 'draft' | 'active' | 'completed' | 'cancelled'
 export type MilestoneStatus =
-  | 'created'
+  | 'draft'
   | 'funded'
+  | 'inProgress'
   | 'submitted'
   | 'changesRequested'
-  | 'accepted'
   | 'disputed'
-  | 'resolved'
+  | 'paid'
   | 'cancelled'
 export type Resolution = 'team100' | 'team75' | 'team50' | 'team25' | 'client100'
 
 interface RawMember {
   wallet: PublicKey
-  role: string
+  role: number
   accepted: boolean
 }
 
@@ -31,6 +32,7 @@ interface RawProject {
   arbiter: PublicKey | null
   members: RawMember[]
   milestoneCount: number
+  closedMilestoneCount: number
   status: Record<string, unknown>
 }
 
@@ -40,12 +42,12 @@ interface RawMilestone {
   amount: BN
   allocations: { wallet: PublicKey; bps: number }[]
   status: Record<string, unknown>
-  resolution: Record<string, unknown> | null
+  dispute: { openedBy: PublicKey; resolution: Record<string, unknown> | null } | null
 }
 
 export interface ChainMember {
   wallet: string
-  role: string
+  role: MemberRole
   accepted: boolean
 }
 
@@ -66,6 +68,9 @@ export interface ChainMilestone {
   amount: BN
   allocations: { wallet: string; bps: number }[]
   status: MilestoneStatus
+  /** Wallet that escalated the milestone to the arbiter; null when never disputed */
+  disputeOpenedBy: string | null
+  /** Arbiter's decision — set once a dispute is resolved (milestone is then paid, or cancelled for client100) */
   resolution: Resolution | null
 }
 
@@ -87,9 +92,9 @@ export function decodeProject(address: PublicKey, raw: RawProject): ChainProject
     seed: raw.seed,
     mint: raw.mint,
     arbiter: raw.arbiter && !raw.arbiter.equals(PublicKey.default) ? raw.arbiter.toBase58() : null,
-    members: raw.members.map((m) => ({ wallet: m.wallet.toBase58(), role: m.role, accepted: m.accepted })),
+    members: raw.members.map((m) => ({ wallet: m.wallet.toBase58(), role: memberRoleFromU8(m.role), accepted: m.accepted })),
     milestoneCount: raw.milestoneCount,
-    status: enumKey<ProjectStatus>(raw.status) ?? 'pending',
+    status: enumKey<ProjectStatus>(raw.status) ?? 'draft',
   }
 }
 
@@ -99,12 +104,13 @@ export function decodeMilestone(address: PublicKey, raw: RawMilestone): ChainMil
     index: raw.index,
     amount: raw.amount,
     allocations: raw.allocations.map((a) => ({ wallet: a.wallet.toBase58(), bps: a.bps })),
-    status: enumKey<MilestoneStatus>(raw.status) ?? 'created',
-    resolution: enumKey<Resolution>(raw.resolution),
+    status: enumKey<MilestoneStatus>(raw.status) ?? 'draft',
+    disputeOpenedBy: raw.dispute?.openedBy.toBase58() ?? null,
+    resolution: enumKey<Resolution>(raw.dispute?.resolution),
   }
 }
 
-// Untyped until the IDL is wired in — the namespace is keyed by account name from the IDL
+// The account namespace is keyed by account name from the IDL; kept untyped so this file owns the mapping
 type AccountClient = {
   fetchNullable(address: PublicKey): Promise<unknown>
   fetchMultiple(addresses: PublicKey[]): Promise<unknown[]>

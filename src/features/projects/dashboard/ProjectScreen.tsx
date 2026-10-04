@@ -30,7 +30,7 @@ export function ProjectScreen() {
     )
   }
 
-  const pending = view.state.project.status === 'pending'
+  const pending = view.state.project.status === 'draft'
 
   return (
     <div className="space-y-6">

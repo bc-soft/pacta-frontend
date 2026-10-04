@@ -3,7 +3,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
 import { TxButton } from '../../components/TxButton'
 import type { ChainMilestone } from '../../lib/solana/accounts'
-import { buildCancelMilestone } from '../../lib/solana/instructions'
+import { buildCancelMilestone, buildStartMilestone } from '../../lib/solana/instructions'
 import { useProgram } from '../../lib/solana/program'
 import { useSendAndSync } from '../../lib/solana/tx'
 import type { ProjectView } from '../projects/useProject'
@@ -22,14 +22,14 @@ export function MilestoneActions({ view, milestone }: { view: ProjectView; miles
   const project = view.state!.project
   const projectKey = new PublicKey(view.pda)
 
-  if (project.status === 'pending') {
-    return role === 'client' && milestone.status === 'created' ? (
+  if (project.status === 'draft') {
+    return role === 'client' && milestone.status === 'draft' ? (
       <Hint>You can fund this milestone once every team member has confirmed the contract.</Hint>
     ) : null
   }
 
   switch (milestone.status) {
-    case 'created':
+    case 'draft':
       if (role === 'client') return <FundMilestone view={view} milestone={milestone} />
       return <Hint>Waiting for the client to fund this milestone.</Hint>
 
@@ -54,15 +54,49 @@ export function MilestoneActions({ view, milestone }: { view: ProjectView; miles
           </div>
         )
       }
-      if (role === 'member') return <SubmitMilestone view={view} milestone={milestone} />
+      if (role === 'member') {
+        return (
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-4">
+              <Hint>Starting the work locks the funds for the team — the client can no longer cancel for a refund.</Hint>
+              <TxButton
+                label="Start work"
+                variant="secondary"
+                successText="Work started"
+                disabled={!program}
+                run={(onPhase) =>
+                  sendAndSync(
+                    () => buildStartMilestone(program!, publicKey!, { project: projectKey, index: milestone.index }),
+                    projectKey,
+                    onPhase,
+                  )
+                }
+              />
+            </div>
+            <SubmitMilestone view={view} milestone={milestone} />
+          </div>
+        )
+      }
       return null
+
+    case 'inProgress':
+      if (role === 'member') return <SubmitMilestone view={view} milestone={milestone} />
+      if (role === 'client') {
+        return (
+          <div className="space-y-3">
+            <Hint>The team is working on it.</Hint>
+            <EscalateToArbiter view={view} milestone={milestone} />
+          </div>
+        )
+      }
+      return <Hint>The team is working on it.</Hint>
 
     case 'changesRequested':
       if (role === 'member') {
         return (
           <div className="space-y-3">
             <SubmitMilestone view={view} milestone={milestone} />
-            <TeamDispute view={view} milestone={milestone} />
+            <EscalateToArbiter view={view} milestone={milestone} />
           </div>
         )
       }
@@ -74,7 +108,7 @@ export function MilestoneActions({ view, milestone }: { view: ProjectView; miles
         return (
           <div className="space-y-3">
             <Hint>Submitted. Waiting for the client&apos;s review.</Hint>
-            <TeamDispute view={view} milestone={milestone} />
+            <EscalateToArbiter view={view} milestone={milestone} />
           </div>
         )
       }
@@ -103,28 +137,38 @@ export function MilestoneActions({ view, milestone }: { view: ProjectView; miles
         </div>
       )
 
-    case 'accepted':
-    case 'resolved':
-      return (
-        <Link
-          to={`/projects/${view.pda}/milestones/${milestone.index}/payment`}
-          className="text-sm font-medium text-emerald-700 hover:text-emerald-900"
-        >
-          See the payout →
-        </Link>
-      )
+    case 'paid':
+      return <PayoutLink view={view} milestone={milestone} />
+
+    case 'cancelled':
+      // Cancelled by the arbiter (client100) — the refund is shown on the payout screen
+      return milestone.resolution ? <PayoutLink view={view} milestone={milestone} /> : null
 
     default:
       return null
   }
 }
 
+function PayoutLink({ view, milestone }: { view: ProjectView; milestone: ChainMilestone }) {
+  return (
+    <Link
+      to={`/projects/${view.pda}/milestones/${milestone.index}/payment`}
+      className="text-sm font-medium text-emerald-700 hover:text-emerald-900"
+    >
+      See the payout →
+    </Link>
+  )
+}
+
 export function Hint({ children }: { children: ReactNode }) {
   return <p className="text-sm text-slate-500">{children}</p>
 }
 
-/** The team can escalate too (e.g. the client keeps asking for changes outside the agreed criteria). */
-function TeamDispute({ view, milestone }: { view: ProjectView; milestone: ChainMilestone }) {
+/**
+ * Either side can escalate: the team when the client keeps asking for changes outside the agreed criteria,
+ * the client when a started milestone stalls.
+ */
+function EscalateToArbiter({ view, milestone }: { view: ProjectView; milestone: ChainMilestone }) {
   if (!view.state!.project.arbiter) return null
   return (
     <details className="rounded-lg border border-slate-200 p-3">

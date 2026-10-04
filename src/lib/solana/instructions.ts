@@ -10,13 +10,13 @@ import {
 import type { Resolution } from './accounts'
 import { milestonePda, projectPda, vaultPda } from './pda'
 
-// Argument shapes follow the agreed program interface (frontend-brief §5.2).
-// Account names are passed via accountsPartial; anything else (system/token programs, PDAs with IDL seeds)
-// is resolved by Anchor from the IDL. Re-check against pacta.json once it's copied in.
+// Argument and account names follow idl/pacta.json. Accounts are passed via accountsPartial; anything else
+// (system/token programs, ATAs and PDAs with IDL seeds) is resolved by Anchor from the IDL.
 
 export interface MemberArg {
   wallet: PublicKey
-  role: string
+  /** u8 index into MEMBER_ROLES (lib/roles.ts) */
+  role: number
 }
 
 export interface AllocationArg {
@@ -33,7 +33,8 @@ export interface CreateProjectParams {
   client: PublicKey
   seed: BN
   mint: PublicKey
-  arbiter: PublicKey | null
+  /** Required by the program (ArbiterRequired), even though the IDL type is Option<Pubkey> */
+  arbiter: PublicKey
   members: MemberArg[]
   milestones: MilestoneArg[]
 }
@@ -57,7 +58,7 @@ export async function buildCreateProjectTxs(
     instructions.push(
       await program.methods
         .createProject(params.seed, params.mint, params.arbiter, params.members)
-        .accountsPartial({ client: params.client, project, vault: vaultPda(project) })
+        .accountsPartial({ client: params.client, project, mint: params.mint, vault: vaultPda(project) })
         .instruction(),
     )
   }
@@ -125,7 +126,7 @@ export const buildFundMilestone = (program: Program, client: PublicKey, mint: Pu
       .accountsPartial({
         client,
         mint,
-        clientTokenAccount: getAssociatedTokenAddressSync(mint, client),
+        clientAta: getAssociatedTokenAddressSync(mint, client),
         ...milestoneAccounts(m),
       })
       .instruction(),
@@ -139,18 +140,29 @@ export const buildCancelMilestone = (program: Program, client: PublicKey, mint: 
       .accountsPartial({
         client,
         mint,
-        clientTokenAccount: getAssociatedTokenAddressSync(mint, client),
+        clientAta: getAssociatedTokenAddressSync(mint, client),
         ...milestoneAccounts(m),
       })
       .instruction(),
   )
 
+// Status-only instructions share one account set in the program: { signer, project, milestone }
+const statusAccounts = (signer: PublicKey, { project, index }: MilestoneAccounts) => ({
+  signer,
+  project,
+  milestone: milestonePda(project, index),
+})
+
+/** A team member marks a funded milestone as started — from then on the client can't cancel it for a refund. */
+export const buildStartMilestone = (program: Program, member: PublicKey, m: MilestoneAccounts) =>
+  toTx(program.methods.startMilestone(m.index).accountsPartial(statusAccounts(member, m)).instruction())
+
 /** A team member marks the work as delivered (deliverable links are saved in the backend before this). */
 export const buildSubmitMilestone = (program: Program, member: PublicKey, m: MilestoneAccounts) =>
-  toTx(program.methods.submitMilestone(m.index).accountsPartial({ member, ...milestoneAccounts(m) }).instruction())
+  toTx(program.methods.submitMilestone(m.index).accountsPartial(statusAccounts(member, m)).instruction())
 
 export const buildRequestChanges = (program: Program, client: PublicKey, m: MilestoneAccounts) =>
-  toTx(program.methods.requestChanges(m.index).accountsPartial({ client, ...milestoneAccounts(m) }).instruction())
+  toTx(program.methods.requestChanges(m.index).accountsPartial(statusAccounts(client, m)).instruction())
 
 /**
  * Token accounts that receive a payout, in the given order, plus idempotent create instructions for the ones that
@@ -185,9 +197,12 @@ export async function buildAcceptMilestone(
 
 /** Client or a team member escalates a milestone to the arbiter. */
 export const buildOpenDispute = (program: Program, signer: PublicKey, m: MilestoneAccounts) =>
-  toTx(program.methods.openDispute(m.index).accountsPartial({ signer, ...milestoneAccounts(m) }).instruction())
+  toTx(program.methods.openDispute(m.index).accountsPartial(statusAccounts(signer, m)).instruction())
 
-/** Arbiter decides. remainingAccounts = member ATAs in allocations order, then the client's ATA (for the refund). */
+/**
+ * Arbiter decides. remainingAccounts = member ATAs in allocations order (the program requires exactly one per
+ * allocation); the client's share is refunded to the client's ATA.
+ */
 export async function buildResolveDispute(
   program: Program,
   connection: Connection,
@@ -195,11 +210,14 @@ export async function buildResolveDispute(
   mint: PublicKey,
   m: MilestoneAccounts & { allocations: PublicKey[]; client: PublicKey; resolution: Resolution },
 ) {
-  const { createMissing, remainingAccounts } = await payoutAccounts(connection, arbiter, mint, [...m.allocations, m.client])
+  const { createMissing, remainingAccounts } = await payoutAccounts(connection, arbiter, mint, m.allocations)
+  // The client funded from this ATA, so it normally exists — create it anyway so the refund can't fail
+  const clientAta = getAssociatedTokenAddressSync(mint, m.client)
+  const createClientAta = createAssociatedTokenAccountIdempotentInstruction(arbiter, clientAta, m.client, mint)
   const ix = await program.methods
     .resolveDispute(m.index, { [m.resolution]: {} })
-    .accountsPartial({ arbiter, mint, ...milestoneAccounts(m) })
+    .accountsPartial({ arbiter, mint, client: m.client, clientAta, ...milestoneAccounts(m) })
     .remainingAccounts(remainingAccounts)
     .instruction()
-  return new Transaction().add(...createMissing, ix)
+  return new Transaction().add(...createMissing, createClientAta, ix)
 }

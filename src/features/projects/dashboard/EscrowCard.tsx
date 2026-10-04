@@ -1,7 +1,7 @@
 import { BN } from '@coral-xyz/anchor'
 import { ExplorerLink } from '../../../components/ExplorerLink'
 import { formatUsdc } from '../../../lib/format'
-import { RESOLUTION_TEAM_BPS } from '../../../lib/labels'
+import { teamPayoutBps } from '../../../lib/labels'
 import { shareOf } from '../../../lib/solana/amounts'
 import { vaultPda } from '../../../lib/solana/pda'
 import type { ChainProjectState } from '../../../lib/solana/accounts'
@@ -10,11 +10,7 @@ import { PublicKey } from '@solana/web3.js'
 export function EscrowCard({ state }: { state: ChainProjectState }) {
   const zero = new BN(0)
   const budget = state.milestones.reduce((sum, m) => sum.add(m.amount), zero)
-  const paidOut = state.milestones.reduce((sum, m) => {
-    if (m.status === 'accepted') return sum.add(m.amount)
-    if (m.status === 'resolved' && m.resolution) return sum.add(shareOf(m.amount, RESOLUTION_TEAM_BPS[m.resolution]))
-    return sum
-  }, zero)
+  const paidOut = state.milestones.reduce((sum, m) => sum.add(shareOf(m.amount, teamPayoutBps(m))), zero)
   const locked = state.vaultBalance ?? zero
 
   return (

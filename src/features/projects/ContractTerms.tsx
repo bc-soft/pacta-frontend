@@ -2,13 +2,14 @@ import { BN } from '@coral-xyz/anchor'
 import { ShortAddress } from '../../components/ShortAddress'
 import type { Profile } from '../../lib/api'
 import { formatUsdc } from '../../lib/format'
+import { MEMBER_ROLE_LABELS, type MemberRole } from '../../lib/roles'
 import { shareOf } from '../../lib/solana/amounts'
 import { PersonLabel } from '../profile/PersonLabel'
 
 export interface ContractTermsData {
   client: string
   arbiter: string | null
-  members: { wallet: string; role: string }[]
+  members: { wallet: string; role: MemberRole }[]
   milestones: {
     title: string
     amount: BN
@@ -20,7 +21,10 @@ export interface ContractTermsData {
 /** Everything the contract enforces, in plain words — shared by the wizard summary and the signing screen. */
 export function ContractTerms({ terms, profiles }: { terms: ContractTermsData; profiles: Record<string, Profile | undefined> }) {
   const total = terms.milestones.reduce((sum, m) => sum.add(m.amount), new BN(0))
-  const roleOf = (wallet: string) => terms.members.find((m) => m.wallet === wallet)?.role
+  const roleOf = (wallet: string) => {
+    const role = terms.members.find((m) => m.wallet === wallet)?.role
+    return role ? MEMBER_ROLE_LABELS[role] : undefined
+  }
 
   return (
     <div className="space-y-6">
@@ -38,7 +42,7 @@ export function ContractTerms({ terms, profiles }: { terms: ContractTermsData; p
               {terms.arbiter ? (
                 <PersonLabel wallet={terms.arbiter} profile={profiles[terms.arbiter]} />
               ) : (
-                <span className="text-slate-600">None — disputes are not possible</span>
+                <span className="text-slate-600">Not set</span>
               )}
             </dd>
           </div>

@@ -6,6 +6,7 @@ import { useProgram } from '../../../lib/solana/program'
 import { useSendAndSync } from '../../../lib/solana/tx'
 import { PersonLabel } from '../../profile/PersonLabel'
 import { useProfiles } from '../../profile/useProfiles'
+import { MEMBER_ROLE_LABELS } from '../../../lib/roles'
 import { ContractTerms } from '../ContractTerms'
 import type { ProjectView } from '../useProject'
 
@@ -48,14 +49,14 @@ export function ContractSigning({ view }: { view: ProjectView }) {
           <SignatureRow
             key={m.wallet}
             done={m.accepted}
-            label={<PersonLabel wallet={m.wallet} profile={profiles[m.wallet]} role={m.role} />}
+            label={<PersonLabel wallet={m.wallet} profile={profiles[m.wallet]} role={MEMBER_ROLE_LABELS[m.role]} />}
           />
         ))}
       </ul>
 
       {mustSign && (
         <div className="mt-5 space-y-3 border-t border-amber-200 pt-5">
-          <p className="text-sm font-medium">You&apos;ve been added to this project as {me.role}.</p>
+          <p className="text-sm font-medium">You&apos;ve been added to this project as {MEMBER_ROLE_LABELS[me.role].toLowerCase()}.</p>
           <TxButton
             label="I agree — confirm the contract"
             successText="Contract confirmed on-chain"

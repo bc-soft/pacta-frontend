@@ -1,20 +1,20 @@
-import type { MilestoneStatus, ProjectStatus, Resolution } from './solana/accounts'
+import type { ChainMilestone, MilestoneStatus, ProjectStatus, Resolution } from './solana/accounts'
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
-  pending: 'Waiting for signatures',
+  draft: 'Waiting for signatures',
   active: 'In progress',
   completed: 'Completed',
   cancelled: 'Cancelled',
 }
 
 export const MILESTONE_STATUS_LABELS: Record<MilestoneStatus, string> = {
-  created: 'Not funded yet',
-  funded: 'Funded · in progress',
+  draft: 'Not funded yet',
+  funded: 'Funded · ready to start',
+  inProgress: 'In progress',
   submitted: 'Waiting for review',
   changesRequested: 'Changes requested',
-  accepted: 'Paid out',
   disputed: 'In dispute',
-  resolved: 'Decided by arbiter',
+  paid: 'Paid out',
   cancelled: 'Cancelled · refunded',
 }
 
@@ -33,4 +33,13 @@ export const RESOLUTION_LABELS: Record<Resolution, string> = {
   team50: 'Team gets 50%, client 50%',
   team25: 'Team gets 25%, client 75%',
   client100: 'Client gets 100% back',
+}
+
+/**
+ * Share of the milestone the team received, in bps: 100% when the client accepted, the arbiter's split after a
+ * dispute (status paid, or cancelled for client100), nothing otherwise.
+ */
+export function teamPayoutBps(milestone: Pick<ChainMilestone, 'status' | 'resolution'>): number {
+  if (milestone.resolution) return RESOLUTION_TEAM_BPS[milestone.resolution]
+  return milestone.status === 'paid' ? 10_000 : 0
 }

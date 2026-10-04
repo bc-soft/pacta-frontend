@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { ExplorerLink } from '../../components/ExplorerLink'
 import { env } from '../../env'
 import { api } from '../../lib/api'
-import { hasIdl } from '../../lib/solana/program'
+import { idlAddress } from '../../lib/solana/program'
 
 /** Pre-demo checklist: is everything the live flow needs actually reachable? */
 export function HealthScreen() {
@@ -45,17 +45,16 @@ export function HealthScreen() {
             'VITE_PACTA_PROGRAM_ID not set'
           )}
         </Row>
-        <Row label="Program IDL" ok={hasIdl}>
-          {hasIdl ? 'loaded' : 'copy pacta.json into src/lib/solana/idl/'}
+        <Row label="Program IDL" ok={idlAddress === env.programId?.toBase58()}>
+          {idlAddress === env.programId?.toBase58()
+            ? 'matches the program'
+            : `built for ${idlAddress} — copy a fresh pacta.json into src/lib/solana/idl/`}
         </Row>
         <Row label="USDC mint" ok={!!env.usdcMint}>
           {env.usdcMint?.toBase58() ?? 'VITE_USDC_MINT not set'}
         </Row>
         <Row label="Buffer polyfill" ok={typeof window.Buffer === 'function'}>
           {typeof window.Buffer === 'function' ? 'present' : 'missing — check vite-plugin-node-polyfills'}
-        </Row>
-        <Row label="API mode" ok>
-          {env.useFakeApi ? 'fake (VITE_USE_FAKE_API=true)' : 'real backend'}
         </Row>
       </dl>
     </section>
