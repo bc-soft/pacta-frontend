@@ -1,10 +1,11 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { StatusPill } from '../../components/StatusPill'
 import { TxButton } from '../../components/TxButton'
-import type { DisputeEvidence } from '../../lib/api'
+import { api, type DisputeEvidence } from '../../lib/api'
 import { formatUsdc } from '../../lib/format'
 import { MILESTONE_STATUS_LABELS, RESOLUTION_LABELS, RESOLUTION_TEAM_BPS } from '../../lib/labels'
 import type { Resolution } from '../../lib/solana/accounts'
@@ -35,14 +36,18 @@ export function ArbiterScreen() {
   const milestone = state?.milestones.find((m) => m.index === Number(index))
   const meta = view.milestoneMeta(Number(index))
   const profiles = useProfiles(state ? [state.project.client, ...state.project.members.map((m) => m.wallet)] : [])
+  const evidence = useQuery({
+    queryKey: ['evidence', pda, Number(index)],
+    queryFn: () => api.disputeEvidence(pda, Number(index)),
+    enabled: !!pda,
+  })
 
   if (view.chain.isPending) return <p className="text-slate-500">Loading dispute from Solana…</p>
   if (!state || !milestone) return <p className="text-slate-600">Milestone not found.</p>
 
   const project = state.project
-  const evidence = meta?.dispute?.evidence ?? []
-  const clientSide = evidence.filter((e) => e.wallet === project.client)
-  const teamSide = evidence.filter((e) => e.wallet !== project.client)
+  const clientSide = (evidence.data ?? []).filter((e) => e.side === 'client')
+  const teamSide = (evidence.data ?? []).filter((e) => e.side === 'team')
   const canDecide = view.role === 'arbiter' && milestone.status === 'disputed'
   const projectKey = new PublicKey(pda)
 
@@ -73,8 +78,8 @@ export function ArbiterScreen() {
           <>
             <h3 className="mt-4 text-sm font-semibold">What the team delivered</h3>
             <ul className="mt-1 space-y-1 text-sm">
-              {meta.deliverables.map((d, i) => (
-                <li key={i}>
+              {meta.deliverables.map((d) => (
+                <li key={d.id}>
                   <a href={d.url} target="_blank" rel="noreferrer" className="text-indigo-600 underline">
                     {d.url}
                   </a>
@@ -88,8 +93,8 @@ export function ArbiterScreen() {
           <>
             <h3 className="mt-4 text-sm font-semibold">Changes the client asked for</h3>
             <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">
-              {meta.comments.map((c, i) => (
-                <li key={i}>{c.comment}</li>
+              {meta.comments.map((c) => (
+                <li key={c.id}>{c.comment}</li>
               ))}
             </ul>
           </>
@@ -177,11 +182,11 @@ function EvidenceColumn({
         <p className="mt-2 text-sm text-slate-500">Nothing submitted yet.</p>
       ) : (
         <ul className="mt-3 space-y-4">
-          {items.map((e, i) => (
-            <li key={i} className="space-y-2">
+          {items.map((e) => (
+            <li key={e.id} className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <PersonLabel wallet={e.wallet} profile={profiles[e.wallet]} />
-                <span className="text-xs text-slate-400">{dateFormat.format(new Date(e.at))}</span>
+                <span className="text-xs text-slate-400">{dateFormat.format(new Date(e.createdAt))}</span>
               </div>
               <p className="whitespace-pre-line text-sm text-slate-700">{e.argument}</p>
               {e.links.length > 0 && (

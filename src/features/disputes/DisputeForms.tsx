@@ -84,7 +84,7 @@ export function AddEvidenceForm({ view, milestone }: { view: ProjectView; milest
     try {
       await ensureBackendAuth()
       await api.addDisputeEvidence(view.pda, milestone.index, { argument: values.argument, links: parseLinks(values.links) })
-      await queryClient.invalidateQueries({ queryKey: ['project', view.pda] })
+      await queryClient.invalidateQueries({ queryKey: ['evidence', view.pda, milestone.index] })
       form.reset()
       setStatus({ ok: true, message: 'Added. The arbiter can see it now.' })
     } catch (error) {

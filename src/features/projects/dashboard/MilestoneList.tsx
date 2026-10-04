@@ -59,8 +59,8 @@ export function MilestoneList({
               <div className="mt-4 rounded-lg bg-slate-50 p-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Delivered work</p>
                 <ul className="mt-2 space-y-1 text-sm">
-                  {meta.deliverables.map((d, i) => (
-                    <li key={i}>
+                  {meta.deliverables.map((d) => (
+                    <li key={d.id}>
                       <a href={d.url} target="_blank" rel="noreferrer" className="text-indigo-600 underline">
                         {d.url}
                       </a>
@@ -75,8 +75,8 @@ export function MilestoneList({
               <div className="mt-3 rounded-lg bg-amber-50 p-3 text-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Requested changes</p>
                 <ul className="mt-1 space-y-1">
-                  {meta.comments.map((c, i) => (
-                    <li key={i} className="whitespace-pre-line text-slate-700">
+                  {meta.comments.map((c) => (
+                    <li key={c.id} className="whitespace-pre-line text-slate-700">
                       {c.comment}
                     </li>
                   ))}

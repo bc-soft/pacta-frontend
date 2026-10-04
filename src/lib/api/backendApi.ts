@@ -1,21 +1,24 @@
 import { request } from './client'
 import type {
-  Deliverable,
+  DeliverableInput,
+  DisputeEvidence,
   DisputeEvidenceInput,
   Health,
   HistoryEvent,
-  MilestoneDraft,
+  MilestoneComment,
+  MilestoneUpdateInput,
+  NotificationList,
   Notification,
   Profile,
   ProfileInput,
-  ProjectDraftCreated,
   ProjectDraftInput,
   ProjectSummary,
 } from './types'
 
 const enc = encodeURIComponent
+const milestonePath = (pda: string, index: number) => `/api/projects/${enc(pda)}/milestones/${index}`
 
-export const realApi = {
+export const api = {
   health: () => request<Health>('GET', '/api/health'),
 
   authNonce: (wallet: string) => request<{ message: string }>('POST', '/api/auth/nonce', { wallet }),
@@ -27,24 +30,26 @@ export const realApi = {
   profile: (wallet: string) => request<Profile>('GET', `/api/profiles/${enc(wallet)}`),
   profiles: (wallets: string[]) => request<Profile[]>('GET', `/api/profiles?wallets=${wallets.map(enc).join(',')}`),
 
-  // Endpoints below are still being built on the backend — see fakeApi.ts
-  createProjectDraft: (input: ProjectDraftInput) => request<ProjectDraftCreated>('POST', '/api/projects', input),
+  createProjectDraft: (input: ProjectDraftInput) => request<ProjectSummary>('POST', '/api/projects', input),
   projects: (wallet: string) => request<ProjectSummary[]>('GET', `/api/projects?wallet=${enc(wallet)}`),
   project: (pda: string) => request<ProjectSummary>('GET', `/api/projects/${enc(pda)}`),
-  updateMilestone: (pda: string, index: number, input: Partial<MilestoneDraft> & { description?: string }) =>
-    request<void>('PUT', `/api/projects/${enc(pda)}/milestones/${index}`, input),
-  addDeliverable: (pda: string, index: number, input: Deliverable) =>
-    request<void>('POST', `/api/projects/${enc(pda)}/milestones/${index}/deliverables`, input),
+  updateMilestone: (pda: string, index: number, input: MilestoneUpdateInput) =>
+    request<ProjectSummary>('PUT', milestonePath(pda, index), input),
+  addDeliverable: (pda: string, index: number, input: DeliverableInput) =>
+    request<ProjectSummary>('POST', `${milestonePath(pda, index)}/deliverables`, input),
+  addMilestoneComment: (pda: string, index: number, comment: string) =>
+    request<MilestoneComment>('POST', `${milestonePath(pda, index)}/comments`, { comment }),
   syncProject: (pda: string, signature: string) =>
     request<ProjectSummary>('POST', `/api/projects/${enc(pda)}/sync`, { signature }),
   history: (pda: string) => request<HistoryEvent[]>('GET', `/api/projects/${enc(pda)}/history`),
+
+  disputeEvidence: (pda: string, index: number) =>
+    request<DisputeEvidence[]>('GET', `${milestonePath(pda, index)}/dispute/evidence`),
   addDisputeEvidence: (pda: string, index: number, input: DisputeEvidenceInput) =>
-    request<void>('POST', `/api/projects/${enc(pda)}/milestones/${index}/dispute/evidence`, input),
-  // Proposed endpoint — not in the agreed contract yet (frontend-brief §6.7 asks for a "Request changes" comment)
-  addMilestoneComment: (pda: string, index: number, comment: string) =>
-    request<void>('POST', `/api/projects/${enc(pda)}/milestones/${index}/comments`, { comment }),
-  notifications: () => request<Notification[]>('GET', '/api/notifications'),
-  markNotificationRead: (id: string) => request<void>('POST', `/api/notifications/${enc(id)}/read`),
+    request<DisputeEvidence>('POST', `${milestonePath(pda, index)}/dispute/evidence`, input),
+
+  notifications: () => request<NotificationList>('GET', '/api/notifications'),
+  markNotificationRead: (id: string) => request<Notification>('POST', `/api/notifications/${enc(id)}/read`),
 }
 
-export type Api = typeof realApi
+export type Api = typeof api

@@ -2,7 +2,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import bs58 from 'bs58'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api } from '../../lib/api'
-import { setApiWallet, setAuthToken, setUnauthorizedHandler } from '../../lib/api/client'
+import { setAuthToken, setUnauthorizedHandler } from '../../lib/api/client'
 import { AuthContext, type AuthContextValue } from './authContext'
 
 // Backend nonce is single-use and valid 5 min; re-request if the user sat on the wallet popup too long
@@ -44,9 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    setApiWallet(wallet)
     setAuthToken(token)
-  }, [wallet, token])
+  }, [token])
 
   const signOut = useCallback(() => {
     if (wallet) storeToken(wallet, null)

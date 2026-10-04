@@ -23,10 +23,6 @@ const schema = z.object({
   VITE_USDC_MINT: publicKey,
   VITE_API_URL: z.string().url(),
   VITE_MERCURE_URL: z.string().url(),
-  VITE_USE_FAKE_API: z
-    .enum(['true', 'false'])
-    .default('false')
-    .transform((v) => v === 'true'),
 })
 
 const parsed = schema.safeParse(import.meta.env)
@@ -43,7 +39,6 @@ export const env = {
   usdcMint: parsed.data.VITE_USDC_MINT,
   apiUrl: parsed.data.VITE_API_URL.replace(/\/$/, ''),
   mercureUrl: parsed.data.VITE_MERCURE_URL,
-  useFakeApi: parsed.data.VITE_USE_FAKE_API,
 }
 
 export function requireProgramId(): PublicKey {

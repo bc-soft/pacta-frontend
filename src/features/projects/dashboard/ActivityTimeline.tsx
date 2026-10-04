@@ -6,10 +6,28 @@ import { api } from '../../../lib/api'
 
 const dateFormat = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' })
 
-const humanize = (type: string) => {
-  const words = type.replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()
+// Program instructions (snake_case, as recorded by the backend) in plain words
+const INSTRUCTION_LABELS: Record<string, string> = {
+  create_project: 'Contract created',
+  create_milestone: 'Milestone added',
+  accept_contract: 'Team member confirmed the contract',
+  fund_milestone: 'Milestone funded',
+  start_milestone: 'Work started',
+  submit_milestone: 'Work submitted for review',
+  request_changes: 'Client requested changes',
+  accept_milestone: 'Milestone accepted · team paid',
+  open_dispute: 'Dispute opened',
+  resolve_dispute: 'Arbiter decided the dispute',
+  cancel_unstarted_milestone: 'Milestone cancelled · client refunded',
+}
+
+const humanize = (instruction: string) => {
+  const words = instruction.replace(/[_-]+/g, ' ').toLowerCase()
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
+
+const instructionLabel = (instruction: string | null) =>
+  instruction ? (INSTRUCTION_LABELS[instruction] ?? humanize(instruction)) : 'Transaction'
 
 interface Row {
   key: string
@@ -38,11 +56,11 @@ export function ActivityTimeline({ pda }: { pda: string }) {
         signature: s.signature,
       }))
     : [...(backend.data ?? [])]
-        .sort((a, b) => b.at.localeCompare(a.at))
-        .map((e, i) => ({
-          key: e.signature ?? `${e.at}-${i}`,
-          label: humanize(e.type) + (e.milestoneIndex !== undefined ? ` · milestone ${e.milestoneIndex + 1}` : ''),
-          at: new Date(e.at),
+        .sort((a, b) => b.slot - a.slot)
+        .map((e) => ({
+          key: e.signature,
+          label: e.success ? instructionLabel(e.instruction) : `Failed: ${instructionLabel(e.instruction).toLowerCase()}`,
+          at: e.blockTime ? new Date(e.blockTime) : null,
           signature: e.signature,
         }))
 

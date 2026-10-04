@@ -1,5 +1,7 @@
 // Mirrors the backend contract (/api/doc.json). Regenerate or adjust when the backend changes.
 
+import type { MemberRole } from '../roles'
+
 export interface ProblemDetails {
   status: number
   title: string
@@ -14,47 +16,54 @@ export interface Health {
 
 export interface Profile {
   wallet: string
-  displayName?: string
-  avatarUrl?: string
-  bio?: string
+  displayName?: string | null
+  avatarUrl?: string | null
+  bio?: string | null
   skills?: string[]
-  contact?: string
+  contact?: string | null
 }
 
 export type ProfileInput = Omit<Profile, 'wallet'>
 
-export interface MilestoneDraft {
-  title: string
-  acceptanceCriteria: string
+export interface AllocationInput {
+  wallet: string
+  /** basis points, 10 000 = 100% */
+  bps: number
 }
 
+export interface MilestoneDraftInput {
+  title: string
+  description?: string
+  acceptanceCriteria?: string
+  /** USDC base units (6 decimals) */
+  amount: number
+  allocations: AllocationInput[]
+}
+
+/**
+ * Same terms as the createProject transaction, plus the texts. The backend derives the same project PDA from
+ * (client, seed), so the seed must stay within the JS safe-integer range.
+ */
 export interface ProjectDraftInput {
   title: string
-  description: string
-  /** u64 as decimal string — generated on the frontend, also passed to createProject */
-  seed: string
-  milestones: MilestoneDraft[]
-}
-
-export interface ProjectDraftCreated {
-  id: string
-  pda: string
-  seed: string
-}
-
-export interface MilestoneMeta extends MilestoneDraft {
-  index: number
   description?: string
-  deliverables?: Deliverable[]
-  /** Proposed (not yet in the agreed contract): client comments sent with "Request changes" */
-  comments?: MilestoneComment[]
-  dispute?: { evidence: DisputeEvidence[] }
+  arbiterWallet: string
+  seed: number
+  members: { wallet: string; role: MemberRole }[]
+  milestones: MilestoneDraftInput[]
+}
+
+export interface MilestoneUpdateInput {
+  title: string
+  description?: string
+  acceptanceCriteria?: string
 }
 
 export interface MilestoneComment {
+  id: string
   wallet: string
   comment: string
-  at: string
+  createdAt: string
 }
 
 export interface DisputeEvidenceInput {
@@ -63,48 +72,99 @@ export interface DisputeEvidenceInput {
 }
 
 export interface DisputeEvidence extends DisputeEvidenceInput {
+  id: string
+  milestoneIndex: number
   wallet: string
-  at: string
+  side: 'client' | 'team'
+  createdAt: string
 }
 
-export type DeliverableType = 'figma' | 'code' | 'preview' | 'document' | 'other'
+export type DeliverableType = 'figma' | 'github' | 'code' | 'preview' | 'document' | 'video' | 'other'
 
-export interface Deliverable {
+export interface DeliverableInput {
   url: string
   type: DeliverableType
   note?: string
 }
 
+export interface Deliverable extends DeliverableInput {
+  id: string
+  addedBy: string
+  createdAt: string
+}
+
 /** Backend copy of on-chain state — convenience only, never the source of truth for money. */
 export interface ChainSnapshot {
+  exists: boolean
   slot: number
   syncedAt: string
   stale: boolean
-  [key: string]: unknown
+  status: string | null
+  data: Record<string, unknown> | null
+}
+
+export interface MilestoneMeta {
+  index: number
+  pda: string
+  title: string
+  description: string | null
+  acceptanceCriteria: string | null
+  amount: number
+  allocations: AllocationInput[]
+  explorerUrl: string
+  deliverables: Deliverable[]
+  /** Client comments sent with "Request changes" */
+  comments?: MilestoneComment[]
+  chain: ChainSnapshot | null
 }
 
 export interface ProjectSummary {
+  id: string
   pda: string
+  seed: string
+  vaultPda: string
+  clientWallet: string
+  arbiterWallet: string | null
   title: string
-  description: string
+  description: string | null
+  /** true until the backend has seen the project on-chain */
+  draft: boolean
+  onChainAt: string | null
+  createdAt: string
+  updatedAt: string
+  explorerUrl: string
+  totalAmount: number
+  members: { wallet: string; role: string; accepted: boolean | null }[]
   milestones: MilestoneMeta[]
-  chain?: ChainSnapshot
+  chain: ChainSnapshot | null
 }
 
+/** One program transaction that touched the project, as recorded by the backend indexer. Newest first. */
 export interface HistoryEvent {
-  type: string
-  at: string
-  signature?: string
-  milestoneIndex?: number
-  actor?: string
+  signature: string
+  /** snake_case program instruction, e.g. fund_milestone; null when it couldn't be read from the logs */
+  instruction: string | null
+  success: boolean
+  slot: number
+  /** RFC 3339; null when the cluster didn't report it */
+  blockTime: string | null
+  explorerUrl: string
 }
 
 export interface Notification {
   id: string
   type: string
-  pda: string
   title: string
-  signature?: string
-  read?: boolean
-  createdAt?: string
+  body: string | null
+  projectPda: string | null
+  signature: string | null
+  explorerUrl: string | null
+  read: boolean
+  createdAt: string
+}
+
+export interface NotificationList {
+  /** Mercure topic the backend publishes this wallet's notifications to */
+  mercureTopic: string
+  items: Notification[]
 }

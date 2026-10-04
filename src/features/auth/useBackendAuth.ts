@@ -1,11 +1,6 @@
-import { useCallback } from 'react'
-import { env } from '../../env'
 import { useAuth } from './useAuth'
 
-/** Call before an authenticated backend write. The fake API needs no sign-in, so this is a no-op there. */
+/** Call before an authenticated backend write: signs in with the wallet if there's no valid session yet. */
 export function useBackendAuth() {
-  const { ensureSignedIn } = useAuth()
-  return useCallback(async () => {
-    if (!env.useFakeApi) await ensureSignedIn()
-  }, [ensureSignedIn])
+  return useAuth().ensureSignedIn
 }

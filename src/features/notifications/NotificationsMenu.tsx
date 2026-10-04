@@ -2,7 +2,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { ExplorerLink } from '../../components/ExplorerLink'
-import { env } from '../../env'
 import { api } from '../../lib/api'
 import { useAuth } from '../auth/useAuth'
 
@@ -11,12 +10,15 @@ export function NotificationsMenu() {
   const { isSignedIn } = useAuth()
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
-  const enabled = isSignedIn || env.useFakeApi
+  const notifications = useQuery({
+    queryKey: ['notifications'],
+    queryFn: api.notifications,
+    enabled: isSignedIn,
+    retry: false,
+  })
+  if (!isSignedIn) return null
 
-  const notifications = useQuery({ queryKey: ['notifications'], queryFn: api.notifications, enabled, retry: false })
-  if (!enabled) return null
-
-  const items = notifications.data ?? []
+  const items = notifications.data?.items ?? []
   const unread = items.filter((n) => !n.read).length
 
   const markRead = async (id: string) => {
@@ -49,9 +51,21 @@ export function NotificationsMenu() {
             <ul className="max-h-96 overflow-y-auto">
               {items.map((n) => (
                 <li key={n.id} className={`rounded-lg p-3 text-sm ${n.read ? '' : 'bg-indigo-50/60'}`}>
-                  <Link to={`/projects/${n.pda}`} onClick={() => { setOpen(false); if (!n.read) void markRead(n.id) }} className="font-medium hover:underline">
-                    {n.title}
-                  </Link>
+                  {n.projectPda ? (
+                    <Link
+                      to={`/projects/${n.projectPda}`}
+                      onClick={() => {
+                        setOpen(false)
+                        if (!n.read) void markRead(n.id)
+                      }}
+                      className="font-medium hover:underline"
+                    >
+                      {n.title}
+                    </Link>
+                  ) : (
+                    <p className="font-medium">{n.title}</p>
+                  )}
+                  {n.body && <p className="mt-0.5 text-xs text-slate-600">{n.body}</p>}
                   {n.signature && (
                     <p className="mt-0.5 text-xs">
                       <ExplorerLink signature={n.signature}>Explorer ↗</ExplorerLink>

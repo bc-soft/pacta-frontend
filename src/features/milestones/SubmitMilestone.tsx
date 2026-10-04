@@ -35,7 +35,9 @@ function detectType(url: string): DeliverableType {
     }
   })()
   if (host.includes('figma.com')) return 'figma'
-  if (/github\.com|gitlab\.com|bitbucket\.org/.test(host)) return 'code'
+  if (host.endsWith('github.com')) return 'github'
+  if (/gitlab\.com|bitbucket\.org/.test(host)) return 'code'
+  if (/youtube\.com|youtu\.be|loom\.com|vimeo\.com/.test(host)) return 'video'
   if (/vercel\.app|netlify\.app|pages\.dev|onrender\.com/.test(host)) return 'preview'
   if (/docs\.google\.com|notion\.(so|site)|dropbox\.com/.test(host)) return 'document'
   return 'other'

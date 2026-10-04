@@ -17,10 +17,12 @@ export function useLiveNotifications() {
     return subscribe(wallet, (n) => {
       toast({
         title: n.title,
-        body: n.pda ? createElement(Link, { to: `/projects/${n.pda}`, className: 'font-medium text-indigo-600' }, 'Open project →') : undefined,
+        body: n.projectPda
+          ? createElement(Link, { to: `/projects/${n.projectPda}`, className: 'font-medium text-indigo-600' }, 'Open project →')
+          : (n.body ?? undefined),
       })
-      if (n.pda) {
-        for (const key of ['chain', 'project', 'history']) void queryClient.invalidateQueries({ queryKey: [key, n.pda] })
+      if (n.projectPda) {
+        for (const key of ['chain', 'project', 'history']) void queryClient.invalidateQueries({ queryKey: [key, n.projectPda] })
       }
       void queryClient.invalidateQueries({ queryKey: ['notifications'] })
       void queryClient.invalidateQueries({ queryKey: ['chain', 'projects'] })
