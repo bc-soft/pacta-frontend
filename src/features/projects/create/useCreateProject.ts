@@ -46,7 +46,7 @@ export function useCreateProject() {
       await api
         .createProjectDraft(toDraftInput(form, params))
         .catch((error: unknown) => {
-          // 409 = draft already saved on a previous attempt
+          // A retry with the same seed replaces the draft (200); 409 = already on-chain, the tx step below skips it
           if (!(error instanceof ApiError && error.status === 409)) throw error
         })
 
