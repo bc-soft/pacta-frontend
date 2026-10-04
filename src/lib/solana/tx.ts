@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { useAuth } from '../../features/auth/useAuth'
 import { api } from '../api'
-import { confirmSignature } from './confirm'
+import { confirmSignature, sendSignedTransaction } from './confirm'
 
 export type TxPhase = 'idle' | 'signing' | 'confirming'
 
@@ -59,7 +59,7 @@ export function useSendAndSync() {
       // Wallet only signs; we send through our own RPC. Phantom's signAndSendTransaction hides program
       // errors behind "Unexpected error", while our preflight returns the logs describeTxError can read.
       const signed = await signTransaction(tx)
-      const signature = await connection.sendRawTransaction(signed.serialize())
+      const signature = await sendSignedTransaction(connection, signed.serialize())
 
       onPhase?.('confirming')
       await confirmSignature(connection, signature, latest.lastValidBlockHeight)
@@ -103,7 +103,7 @@ export function useSendAllAndSync() {
       const signatures: string[] = []
       try {
         for (const tx of signed) {
-          const signature = await connection.sendRawTransaction(tx.serialize())
+          const signature = await sendSignedTransaction(connection, tx.serialize())
           await confirmSignature(connection, signature, latest.lastValidBlockHeight)
           signatures.push(signature)
         }

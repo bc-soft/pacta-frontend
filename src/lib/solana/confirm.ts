@@ -24,3 +24,22 @@ export async function confirmSignature(
     await new Promise((resolve) => setTimeout(resolve, POLL_MS))
   }
 }
+
+const SEND_ATTEMPTS = 6
+
+/**
+ * Sends an already signed transaction, retrying while the RPC says "Blockhash not found". Load-balanced
+ * providers (Alchemy, Helius) can serve the blockhash from one node and run the preflight on another that is
+ * a few slots behind; the signed transaction stays valid, so a short wait is enough — no new wallet popup.
+ */
+export async function sendSignedTransaction(connection: Connection, raw: Uint8Array | Buffer): Promise<TransactionSignature> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await connection.sendRawTransaction(raw, { preflightCommitment: 'confirmed', maxRetries: 3 })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (attempt >= SEND_ATTEMPTS || !/blockhash not found/i.test(message)) throw error
+      await new Promise((resolve) => setTimeout(resolve, 500 * attempt))
+    }
+  }
+}
