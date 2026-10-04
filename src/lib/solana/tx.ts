@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { useAuth } from '../../features/auth/useAuth'
 import { api } from '../api'
+import { withComputeBudget } from './budget'
 import { confirmSignature, sendSignedTransaction } from './confirm'
 import { signForCluster } from './sign'
 
@@ -74,6 +75,7 @@ export function useSendAllAndSync() {
       onPhase?.('signing')
       await signIn()
       const txs = await build()
+      await withComputeBudget(connection, publicKey, txs)
       const signFresh = async () => {
         const latest = await connection.getLatestBlockhash('confirmed')
         for (const tx of txs) {
