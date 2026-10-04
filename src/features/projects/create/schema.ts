@@ -1,5 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 import { z } from 'zod'
+import { MEMBER_ROLES } from '../../../lib/roles'
 import { BPS_TOTAL, percentToBps, usdcToBaseUnits } from '../../../lib/solana/amounts'
 
 export const MAX_MEMBERS = 8
@@ -23,14 +24,14 @@ const walletAddress = z
 export const projectFormSchema = (client: string) =>
   z
     .object({
-      seed: z.string(),
+      seed: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
       title: z.string().trim().min(3, 'At least 3 characters').max(80, 'At most 80 characters'),
       description: z.string().trim().max(1000, 'At most 1000 characters'),
       members: z
         .array(
           z.object({
             wallet: walletAddress.refine((w) => w !== client, 'You are the client — add your teammates here'),
-            role: z.string().trim().min(1, 'Role is required').max(32, 'At most 32 characters'),
+            role: z.enum(MEMBER_ROLES, { errorMap: () => ({ message: 'Pick a role' }) }),
           }),
         )
         .min(1, 'Add at least one team member')
@@ -66,11 +67,12 @@ export const projectFormSchema = (client: string) =>
         )
         .min(1, 'Add at least one milestone')
         .max(MAX_MILESTONES, `At most ${MAX_MILESTONES} milestones`),
-      arbiter: z.union([z.literal(''), walletAddress]),
+      // Required by the program: every contract has someone neutral who can settle a dispute
+      arbiter: walletAddress,
     })
     // Runs only once every field is valid — fine, the arbiter is the last step
     .superRefine((form, ctx) => {
-      const notOutsider = form.arbiter && (form.arbiter === client || form.members.some((m) => m.wallet === form.arbiter))
+      const notOutsider = form.arbiter === client || form.members.some((m) => m.wallet === form.arbiter)
       if (notOutsider) ctx.addIssue({ code: 'custom', path: ['arbiter'], message: 'The arbiter must be someone outside the project' })
       if (form.milestones.some((m) => m.split.length !== form.members.length)) {
         ctx.addIssue({ code: 'custom', path: ['milestones'], message: 'Set the split again — the team has changed' })

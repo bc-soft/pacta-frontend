@@ -8,7 +8,7 @@ import { projectPda } from '../../../lib/solana/pda'
 import { useProgram } from '../../../lib/solana/program'
 import { useSendAllAndSync, type TxPhase } from '../../../lib/solana/tx'
 import { useBackendAuth } from '../../auth/useBackendAuth'
-import { toChainParams } from './chainParams'
+import { toChainParams, toDraftInput } from './chainParams'
 import type { ProjectForm } from './schema'
 
 export interface CreatedProject {
@@ -44,12 +44,7 @@ export function useCreateProject() {
       onPhase('signing')
       await ensureBackendAuth()
       await api
-        .createProjectDraft({
-          title: form.title,
-          description: form.description,
-          seed: form.seed,
-          milestones: form.milestones.map((m) => ({ title: m.title, acceptanceCriteria: m.acceptanceCriteria })),
-        })
+        .createProjectDraft(toDraftInput(form, params))
         .catch((error: unknown) => {
           // 409 = draft already saved on a previous attempt
           if (!(error instanceof ApiError && error.status === 409)) throw error

@@ -3,6 +3,7 @@ import { Field, inputClass, secondaryButtonClass } from '../../../../components/
 import { formatUsdc } from '../../../../lib/format'
 import { BPS_TOTAL, bpsToPercent, evenSplitBps, percentToBps, shareOf, usdcToBaseUnits } from '../../../../lib/solana/amounts'
 import { PersonLabel } from '../../../profile/PersonLabel'
+import { MEMBER_ROLE_LABELS } from '../../../../lib/roles'
 import { useProfiles } from '../../../profile/useProfiles'
 import { MAX_MILESTONES, type ProjectForm } from '../schema'
 
@@ -129,7 +130,7 @@ function MilestoneCard({ index, onRemove }: { index: number; onRemove?: () => vo
             return (
               <li key={j} className="flex items-center gap-3 px-3 py-2">
                 <div className="min-w-0 flex-1">
-                  <PersonLabel wallet={wallet || '?'} profile={profiles[wallet]} role={member.role} />
+                  <PersonLabel wallet={wallet || '?'} profile={profiles[wallet]} role={MEMBER_ROLE_LABELS[member.role]} />
                 </div>
                 <div className="relative w-24">
                   <input

@@ -7,6 +7,7 @@ import { percentToBps, usdcToBaseUnits } from '../../../../lib/solana/amounts'
 import { PersonLabel } from '../../../profile/PersonLabel'
 import { ContractTerms, type ContractTermsData } from '../../ContractTerms'
 import { useProfiles } from '../../../profile/useProfiles'
+import { MEMBER_ROLE_LABELS } from '../../../../lib/roles'
 import type { ProjectForm } from '../schema'
 import { useCreateProject, type CreatedProject } from '../useCreateProject'
 
@@ -58,7 +59,7 @@ export function ContractSummary({ onCreated }: { onCreated: (project: CreatedPro
           </li>
           {form.members.map((member) => (
             <li key={member.wallet} className="flex items-center justify-between gap-3">
-              <PersonLabel wallet={member.wallet} profile={profiles[member.wallet]} role={member.role} />
+              <PersonLabel wallet={member.wallet} profile={profiles[member.wallet]} role={MEMBER_ROLE_LABELS[member.role]} />
               <span className="text-sm text-slate-500">Confirms after you</span>
             </li>
           ))}

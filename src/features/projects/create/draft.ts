@@ -12,7 +12,10 @@ const key = (wallet: string) => `pacta.createProject.${wallet}`
 export function loadDraft(wallet: string): Draft | null {
   try {
     const raw = localStorage.getItem(key(wallet))
-    return raw ? (JSON.parse(raw) as Draft) : null
+    const draft = raw ? (JSON.parse(raw) as Draft) : null
+    // Drafts saved before seeds became numbers (u64 strings) or roles a fixed list can't be submitted — start over
+    if (draft && typeof draft.values.seed !== 'number') return null
+    return draft
   } catch {
     return null
   }
@@ -35,10 +38,10 @@ export function clearDraft(wallet: string) {
 }
 
 export const emptyProjectForm = (): ProjectForm => ({
-  seed: randomProjectSeed().toString(),
+  seed: randomProjectSeed(),
   title: '',
   description: '',
-  members: [{ wallet: '', role: '' }],
+  members: [{ wallet: '', role: 'frontend' }],
   milestones: [{ title: '', amount: '', acceptanceCriteria: '', split: ['100'] }],
   arbiter: '',
 })

@@ -1,11 +1,10 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form'
 import { inputClass, secondaryButtonClass } from '../../../../components/form'
+import { MEMBER_ROLE_LABELS, MEMBER_ROLES } from '../../../../lib/roles'
 import { PersonLabel } from '../../../profile/PersonLabel'
 import { useProfiles } from '../../../profile/useProfiles'
 import { MAX_MEMBERS, type ProjectForm } from '../schema'
-
-const ROLE_SUGGESTIONS = ['Designer', 'Developer', 'Copywriter', 'Project manager', 'QA']
 
 export function TeamStep() {
   const { publicKey } = useWallet()
@@ -31,12 +30,6 @@ export function TeamStep() {
         </div>
       )}
 
-      <datalist id="role-suggestions">
-        {ROLE_SUGGESTIONS.map((r) => (
-          <option key={r} value={r} />
-        ))}
-      </datalist>
-
       <ul className="space-y-3">
         {fields.map((field, i) => {
           const wallet = members[i]?.wallet.trim() ?? ''
@@ -58,14 +51,18 @@ export function TeamStep() {
                   {memberErrors?.wallet && <p className="mt-1 text-xs text-rose-700">{memberErrors.wallet.message}</p>}
                 </div>
                 <div>
-                  <input
+                  <select
                     {...register(`members.${i}.role`)}
-                    list="role-suggestions"
                     className={inputClass}
-                    placeholder="Role, e.g. Designer"
                     aria-invalid={!!memberErrors?.role}
                     aria-label={`Team member ${i + 1} role`}
-                  />
+                  >
+                    {MEMBER_ROLES.map((r) => (
+                      <option key={r} value={r}>
+                        {MEMBER_ROLE_LABELS[r]}
+                      </option>
+                    ))}
+                  </select>
                   {memberErrors?.role && <p className="mt-1 text-xs text-rose-700">{memberErrors.role.message}</p>}
                 </div>
                 <button
@@ -93,7 +90,7 @@ export function TeamStep() {
 
       <button
         type="button"
-        onClick={() => append({ wallet: '', role: '' })}
+        onClick={() => append({ wallet: '', role: 'frontend' })}
         disabled={fields.length >= MAX_MEMBERS}
         className={secondaryButtonClass}
       >

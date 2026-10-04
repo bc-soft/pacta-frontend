@@ -20,13 +20,13 @@ export function ArbiterStep() {
           An arbiter is a neutral person both sides trust. If you and the team can&apos;t agree whether a milestone is
           done, the arbiter reads both sides and decides how the money for that milestone is split.
         </p>
-        <p>Optional — but without an arbiter, disputes are not possible in this project.</p>
+        <p>The arbiter never receives any money and can&apos;t touch the funds — only choose one of the fixed splits.</p>
       </div>
-      <Field label="Arbiter wallet address (optional)" error={errors.arbiter?.message}>
+      <Field label="Arbiter wallet address" error={errors.arbiter?.message}>
         <input
           {...register('arbiter')}
           className={`${inputClass} font-mono`}
-          placeholder="Leave empty for no arbiter"
+          placeholder="Wallet address of someone outside the project"
           autoComplete="off"
           spellCheck={false}
           aria-invalid={!!errors.arbiter}
