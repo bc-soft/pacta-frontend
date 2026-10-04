@@ -20,9 +20,12 @@ export function describeTxError(error: unknown): { kind: TxErrorKind; message: s
     return { kind: 'error', message: PROGRAM_ERRORS[code] ?? anchorError.error.errorMessage }
   }
 
-  // Still unknown after sendSignedTransaction's retries: usually the wallet is on another network
+  // Still unknown after the re-sign and send retries: approval took too long again, or another network
   if (error instanceof Error && /blockhash not found/i.test(error.message)) {
-    return { kind: 'error', message: 'Solana did not recognise this transaction. Make sure your wallet is set to Devnet and try again.' }
+    return {
+      kind: 'error',
+      message: 'The approval expired before it reached Solana (about 30 s). Try again and approve a bit faster; check the wallet is on Devnet.',
+    }
   }
   // Fee payer has never received SOL on this cluster (fresh wallet on devnet)
   if (error instanceof Error && /no record of a prior credit|AccountNotFound/i.test(error.message)) {

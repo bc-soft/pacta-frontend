@@ -19,7 +19,7 @@ interface Props {
 }
 
 const VARIANTS = {
-  primary: 'bg-brand-600 text-white shadow-sm hover:bg-brand-500',
+  primary: 'bg-brand-600 text-white shadow-lg shadow-brand-600/25 hover:bg-brand-500',
   secondary: 'border border-ink-300 bg-white text-ink-700 hover:bg-ink-50',
   danger: 'border border-rose-300 bg-white text-rose-700 hover:bg-rose-50',
 }
@@ -34,7 +34,7 @@ export function TxButton({
   variant = 'primary',
 }: Props) {
   const [state, setState] = useState<State>({ phase: 'idle' })
-  const busy = state.phase === 'signing' || state.phase === 'confirming'
+  const busy = state.phase === 'signing' || state.phase === 'resigning' || state.phase === 'confirming'
 
   const handleClick = async () => {
     setState({ phase: 'signing' })
@@ -55,10 +55,19 @@ export function TxButton({
         type="button"
         onClick={handleClick}
         disabled={disabled || busy}
-        className={`rounded-lg px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${VARIANTS[variant]}`}
+        className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 ${VARIANTS[variant]}`}
       >
-        {state.phase === 'signing' ? 'Confirm in wallet…' : state.phase === 'confirming' ? 'Confirming…' : label}
+        {state.phase === 'signing' || state.phase === 'resigning'
+          ? 'Confirm in wallet…'
+          : state.phase === 'confirming'
+            ? 'Confirming…'
+            : label}
       </button>
+      {state.phase === 'resigning' && (
+        <p className="text-sm text-amber-800">
+          Solana only accepts an approval for about half a minute and that one ran out. Please approve once more.
+        </p>
+      )}
       {state.phase === 'success' && (
         <p className="text-sm text-emerald-700">
           {successText} · <ExplorerLink signature={state.signature} />

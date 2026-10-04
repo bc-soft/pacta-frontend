@@ -1,5 +1,5 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import type { Connection, PublicKey, Transaction } from '@solana/web3.js'
+import type { PublicKey, Transaction } from '@solana/web3.js'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { useAuth } from '../../features/auth/useAuth'
@@ -7,7 +7,10 @@ import { api } from '../api'
 import { confirmSignature, sendSignedTransaction } from './confirm'
 import { signForCluster } from './sign'
 
-export type TxPhase = 'idle' | 'signing' | 'confirming'
+export type TxPhase = 'idle' | 'signing' | 'resigning' | 'confirming'
+
+/** Blocks left that we still consider enough to send and land the transaction (~5 s on devnet). */
+const EXPIRY_MARGIN_BLOCKS = 20
 
 /**
  * Backend sync needs a session, so the first transaction of a session also asks the wallet to sign in.
@@ -71,21 +74,28 @@ export function useSendAllAndSync() {
       onPhase?.('signing')
       await signIn()
       const txs = await build()
-      const latest = await connection.getLatestBlockhash('confirmed')
-      for (const tx of txs) {
-        tx.recentBlockhash = latest.blockhash
-        tx.feePayer = publicKey
+      const signFresh = async () => {
+        const latest = await connection.getLatestBlockhash('confirmed')
+        for (const tx of txs) {
+          tx.recentBlockhash = latest.blockhash
+          tx.feePayer = publicKey
+        }
+        return { latest, signed: await signForCluster(wallet, txs) }
       }
-      const signed = await signForCluster(wallet, txs)
+
+      let { latest, signed } = await signFresh()
+      // A blockhash lives 150 blocks; on devnet that can be ~35 s, less than a careful read of the wallet popup.
+      // If it ran out while the user was approving, sign once more with a fresh one instead of failing.
+      if ((await connection.getBlockHeight('confirmed')) > latest.lastValidBlockHeight - EXPIRY_MARGIN_BLOCKS) {
+        onPhase?.('resigning')
+        ;({ latest, signed } = await signFresh())
+      }
 
       onPhase?.('confirming')
       const signatures: string[] = []
       try {
-        for (const [i, tx] of signed.entries()) {
-          const signature = await sendSignedTransaction(connection, tx.serialize()).catch(async (error: unknown) => {
-            await logBlockhashDiagnostics(connection, latest.blockhash, txs[i], tx)
-            throw error
-          })
+        for (const tx of signed) {
+          const signature = await sendSignedTransaction(connection, tx.serialize())
           await confirmSignature(connection, signature, latest.lastValidBlockHeight)
           signatures.push(signature)
         }
@@ -97,22 +107,4 @@ export function useSendAllAndSync() {
     },
     [connection, wallet, afterConfirmed, signIn],
   )
-}
-
-/** Temporary: pinpoints whose blockhash a rejected transaction carries (ours, or one the wallet put in). */
-async function logBlockhashDiagnostics(connection: Connection, fetched: string, built: Transaction, signed: Transaction) {
-  const valid = (hash: string | undefined) =>
-    hash ? connection.isBlockhashValid(hash, { commitment: 'processed' }).then((r) => r.value, (e: unknown) => String(e)) : 'n/a'
-  console.warn('Pacta tx debug', {
-    rpc: connection.rpcEndpoint.replace(/(v2\/|api-key=)[^/&]+/, '$1<key>'),
-    blockHeight: await connection.getBlockHeight('confirmed').catch(String),
-    fetchedBlockhash: fetched,
-    builtBlockhash: built.recentBlockhash,
-    signedBlockhash: signed.recentBlockhash,
-    fetchedValid: await valid(fetched),
-    signedValid: await valid(signed.recentBlockhash),
-    feePayer: signed.feePayer?.toBase58(),
-    instructions: signed.instructions.map((ix) => ix.programId.toBase58()),
-    signedTxBase64: signed.serialize({ requireAllSignatures: false, verifySignatures: false }).toString('base64'),
-  })
 }
