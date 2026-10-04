@@ -21,8 +21,9 @@ const schema = z.object({
   // Optional until the program is deployed; screens that need them check via requireX()
   VITE_PACTA_PROGRAM_ID: publicKey,
   VITE_USDC_MINT: publicKey,
-  VITE_API_URL: z.string().url(),
-  VITE_MERCURE_URL: z.string().url(),
+  // Empty = same origin; in dev the Vite proxy forwards /api and /.well-known/mercure to the backend
+  VITE_API_URL: z.union([z.literal(''), z.string().url()]).default(''),
+  VITE_MERCURE_URL: z.union([z.literal(''), z.string().url()]).default(''),
 })
 
 const parsed = schema.safeParse(import.meta.env)
@@ -38,7 +39,7 @@ export const env = {
   programId: parsed.data.VITE_PACTA_PROGRAM_ID,
   usdcMint: parsed.data.VITE_USDC_MINT,
   apiUrl: parsed.data.VITE_API_URL.replace(/\/$/, ''),
-  mercureUrl: parsed.data.VITE_MERCURE_URL,
+  mercureUrl: parsed.data.VITE_MERCURE_URL || `${window.location.origin}/.well-known/mercure`,
 }
 
 export function requireProgramId(): PublicKey {

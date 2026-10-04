@@ -37,7 +37,7 @@ export async function request<T>(method: string, path: string, body?: unknown): 
       body: body === undefined ? undefined : JSON.stringify(body),
     })
   } catch {
-    // Typical locally: self-signed cert not yet accepted at VITE_API_URL
+    // Locally: backend container not running, or VITE_API_URL points past the dev proxy
     throw new ApiError({ status: 0, title: 'Network error', detail: 'Cannot reach the server.' })
   }
 

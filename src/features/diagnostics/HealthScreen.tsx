@@ -36,7 +36,7 @@ export function HealthScreen() {
         <Row label="Backend API" ok={backend.isSuccess} pending={backend.isPending}>
           {backend.data
             ? JSON.stringify(backend.data)
-            : `${backend.error?.message ?? ''} — open ${env.apiUrl} once and accept the certificate`}
+            : `${backend.error?.message ?? ''} — is the backend running (docker compose up) and BACKEND_PROXY_TARGET correct?`}
         </Row>
         <Row label="Program" ok={program.data === true} pending={program.isFetching}>
           {env.programId ? (

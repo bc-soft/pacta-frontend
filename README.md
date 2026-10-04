@@ -12,7 +12,7 @@ cp .env.example .env.local   # fill in the values, see below
 npm run dev
 ```
 
-Before first use, open `VITE_API_URL` (https://localhost:8443) in the browser and accept the self-signed certificate. Otherwise every API call fails with a generic network error.
+`npm run dev` proxies `/api` and `/.well-known/mercure` to the backend (`BACKEND_PROXY_TARGET`, default `https://localhost:8443`), so the browser never sees the backend's self-signed certificate and there is no CORS to configure.
 
 `/health` in the app checks RPC, backend, program, IDL and polyfills. Open it before a demo.
 
@@ -24,8 +24,9 @@ Before first use, open `VITE_API_URL` (https://localhost:8443) in the browser an
 | `VITE_SOLANA_RPC_URL` | Helius/other RPC with websocket support (transaction confirmation uses `signatureSubscribe`, which Alchemy doesn't serve). Don't use `api.devnet.solana.com` for the demo (429 rate limits) |
 | `VITE_PACTA_PROGRAM_ID` | `AgSfAvkXWBugaYg768AAZdpUT3oNYkx7JQGmZTrUwHWK` (devnet). Must match the IDL in `src/lib/solana/idl/` |
 | `VITE_USDC_MINT` | `6VLBMnVsHDDmg6a4tDqo9X4hMiCAZuuVDYJrivMVjvF9`: test USDC (6 decimals) from the program repo's demo setup, same as the backend |
-| `VITE_API_URL` | Backend, `https://localhost:8443` locally |
-| `VITE_MERCURE_URL` | `https://localhost:8443/.well-known/mercure` |
+| `VITE_API_URL` | Empty locally (same origin through the dev proxy). Full backend URL only for a deployed build |
+| `VITE_MERCURE_URL` | Empty locally (defaults to `<origin>/.well-known/mercure`). Full hub URL only for a deployed build |
+| `BACKEND_PROXY_TARGET` | Dev proxy target, `https://localhost:8443` |
 
 ## Screens
 
