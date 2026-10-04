@@ -18,7 +18,7 @@ export function useLiveNotifications() {
       toast({
         title: n.title,
         body: n.projectPda
-          ? createElement(Link, { to: `/projects/${n.projectPda}`, className: 'font-medium text-indigo-600' }, 'Open project →')
+          ? createElement(Link, { to: `/projects/${n.projectPda}`, className: 'font-medium text-brand-600' }, 'Open project →')
           : (n.body ?? undefined),
       })
       if (n.projectPda) {

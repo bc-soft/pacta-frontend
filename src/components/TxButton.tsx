@@ -19,8 +19,8 @@ interface Props {
 }
 
 const VARIANTS = {
-  primary: 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-500',
-  secondary: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
+  primary: 'bg-brand-600 text-white shadow-sm hover:bg-brand-500',
+  secondary: 'border border-ink-300 bg-white text-ink-700 hover:bg-ink-50',
   danger: 'border border-rose-300 bg-white text-rose-700 hover:bg-rose-50',
 }
 
@@ -64,7 +64,7 @@ export function TxButton({
           {successText} · <ExplorerLink signature={state.signature} />
         </p>
       )}
-      {state.phase === 'cancelled' && <p className="text-sm text-slate-500">{state.message}</p>}
+      {state.phase === 'cancelled' && <p className="text-sm text-ink-500">{state.message}</p>}
       {state.phase === 'error' && <p className="text-sm text-rose-700">{state.message}</p>}
     </div>
   )

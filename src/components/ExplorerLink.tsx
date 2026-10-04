@@ -13,7 +13,7 @@ export function ExplorerLink({ signature, address, children, className }: Props)
       href={href}
       target="_blank"
       rel="noreferrer"
-      className={className ?? 'font-medium text-indigo-600 underline underline-offset-2 hover:text-indigo-800'}
+      className={className ?? 'font-medium text-brand-600 underline underline-offset-2 hover:text-brand-800'}
     >
       {children ?? 'View on Solana Explorer ↗'}
     </a>

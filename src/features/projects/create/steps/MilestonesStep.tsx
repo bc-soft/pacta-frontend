@@ -14,7 +14,7 @@ export function MilestonesStep() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-ink-600">
         Split the job into milestones. Each one is funded and paid out separately — when you accept it, the amount is
         sent to the team automatically, in the shares you set here.
       </p>
@@ -65,11 +65,11 @@ function MilestoneCard({ index, onRemove }: { index: number; onRemove?: () => vo
     })
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5">
+    <section className="card p-5">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-semibold">Milestone {index + 1}</h3>
         {onRemove && (
-          <button type="button" onClick={onRemove} className="text-sm text-slate-500 hover:text-rose-700">
+          <button type="button" onClick={onRemove} className="text-sm text-ink-500 hover:text-rose-700">
             Remove
           </button>
         )}
@@ -93,7 +93,7 @@ function MilestoneCard({ index, onRemove }: { index: number; onRemove?: () => vo
               placeholder="1000"
               aria-invalid={!!fieldErrors?.amount}
             />
-            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-slate-500">
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-ink-500">
               USDC
             </span>
           </div>
@@ -118,12 +118,12 @@ function MilestoneCard({ index, onRemove }: { index: number; onRemove?: () => vo
 
       <div className="mt-5">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-slate-800">Who gets what</span>
-          <button type="button" onClick={splitEvenly} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+          <span className="text-sm font-medium text-ink-800">Who gets what</span>
+          <button type="button" onClick={splitEvenly} className="text-sm font-medium text-brand-600 hover:text-brand-800">
             Split evenly
           </button>
         </div>
-        <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200">
+        <ul className="mt-2 divide-y divide-ink-100 rounded-xl border border-ink-200">
           {members.map((member, j) => {
             const wallet = member.wallet.trim()
             const bps = percentToBps(milestone.split[j] ?? '')
@@ -140,11 +140,11 @@ function MilestoneCard({ index, onRemove }: { index: number; onRemove?: () => vo
                     aria-label={`Share for team member ${j + 1}`}
                     aria-invalid={!!fieldErrors?.split?.[j]}
                   />
-                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-slate-500">
+                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-ink-500">
                     %
                   </span>
                 </div>
-                <span className="w-28 text-right text-sm tabular-nums text-slate-600">
+                <span className="w-28 text-right text-sm tabular-nums text-ink-600">
                   {amount && bps !== null ? formatUsdc(shareOf(amount, bps)) : '—'}
                 </span>
               </li>

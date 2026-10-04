@@ -14,9 +14,9 @@ export function EscrowCard({ state }: { state: ChainProjectState }) {
   const locked = state.vaultBalance ?? zero
 
   return (
-    <section className="grid gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-3">
+    <section className="grid gap-4 card p-5 sm:grid-cols-3">
       <div className="sm:col-span-1">
-        <p className="text-sm text-slate-500">Locked in escrow</p>
+        <p className="text-sm text-ink-500">Locked in escrow</p>
         <p className="mt-1 text-3xl font-bold tabular-nums">{formatUsdc(locked)}</p>
         <p className="mt-1 text-xs text-emerald-700">
           Secured on-chain ·{' '}
@@ -24,11 +24,11 @@ export function EscrowCard({ state }: { state: ChainProjectState }) {
         </p>
       </div>
       <div>
-        <p className="text-sm text-slate-500">Paid out to the team</p>
+        <p className="text-sm text-ink-500">Paid out to the team</p>
         <p className="mt-1 text-xl font-semibold tabular-nums">{formatUsdc(paidOut)}</p>
       </div>
       <div>
-        <p className="text-sm text-slate-500">Total budget</p>
+        <p className="text-sm text-ink-500">Total budget</p>
         <p className="mt-1 text-xl font-semibold tabular-nums">{formatUsdc(budget)}</p>
       </div>
     </section>

@@ -3,7 +3,7 @@ import { ToastContext, type ToastInput } from './toastContext'
 
 const DURATION_MS = 6000
 const TONES = {
-  info: 'border-slate-200',
+  info: 'border-ink-200',
   success: 'border-emerald-300',
   error: 'border-rose-300',
 }
@@ -33,11 +33,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           >
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm font-semibold">{t.title}</p>
-              <button type="button" onClick={() => dismiss(t.id)} className="text-slate-400 hover:text-slate-700" aria-label="Dismiss">
+              <button type="button" onClick={() => dismiss(t.id)} className="text-ink-400 hover:text-ink-700" aria-label="Dismiss">
                 ×
               </button>
             </div>
-            {t.body && <div className="mt-1 text-sm text-slate-600">{t.body}</div>}
+            {t.body && <div className="mt-1 text-sm text-ink-600">{t.body}</div>}
           </div>
         ))}
       </div>

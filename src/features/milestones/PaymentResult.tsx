@@ -33,8 +33,8 @@ export function PaymentResult() {
   const signature = search.get('tx') ?? lastTx.data ?? null
   const profiles = useProfiles([...(view.state?.project.members.map((m) => m.wallet) ?? []), view.state?.project.client ?? ''])
 
-  if (view.chain.isPending) return <p className="text-slate-500">Loading payment from Solana…</p>
-  if (!view.state || !milestone) return <p className="text-slate-600">Milestone not found.</p>
+  if (view.chain.isPending) return <p className="text-ink-500">Loading payment from Solana…</p>
+  if (!view.state || !milestone) return <p className="text-ink-600">Milestone not found.</p>
 
   const teamBps = paid ? teamPayoutBps(milestone) : 10_000
   const teamTotal = shareOf(milestone.amount, teamBps)
@@ -67,7 +67,7 @@ export function PaymentResult() {
         <h1 className="mt-2 text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">
           {formatUsdc(teamTotal)} {paid ? 'distributed' : 'to distribute'}
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-ink-600">
           {milestone.resolution
             ? `Decided by the arbiter: ${RESOLUTION_LABELS[milestone.resolution]}.`
             : 'Split automatically by the contract, exactly as agreed before work started.'}
@@ -75,25 +75,25 @@ export function PaymentResult() {
 
         <ul className="mt-8 space-y-3 text-left">
           {rows.map((row) => (
-            <li key={row.wallet} className="rounded-xl border border-slate-200 bg-white p-4">
+            <li key={row.wallet} className="card p-4">
               <div className="flex items-center gap-3">
                 <Avatar wallet={row.wallet} profile={profiles[row.wallet]} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{profiles[row.wallet]?.displayName ?? shortAddress(row.wallet)}</p>
-                  <p className="text-xs text-slate-500">{row.role}</p>
+                  <p className="text-xs text-ink-500">{row.role}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-bold tabular-nums">{formatUsdc(row.amount)}</p>
-                  <p className="text-xs text-slate-500">{row.bps / 100}%</p>
+                  <p className="text-xs text-ink-500">{row.bps / 100}%</p>
                 </div>
               </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-ink-100">
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: `${row.bps / 100}%` }} />
               </div>
             </li>
           ))}
           {refund.gt(new BN(0)) && (
-            <li className="rounded-xl border border-slate-200 bg-white p-4">
+            <li className="card p-4">
               <div className="flex items-center gap-3">
                 <Avatar wallet={view.state.project.client} profile={profiles[view.state.project.client]} />
                 <div className="flex-1">
@@ -109,14 +109,14 @@ export function PaymentResult() {
           {signature ? (
             <ExplorerLink
               signature={signature}
-              className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-700"
+              className="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-5 py-3 font-semibold text-white hover:bg-ink-700"
             >
               See all {rows.length + (refund.gt(new BN(0)) ? 1 : 0)} transfers in one transaction ↗
             </ExplorerLink>
           ) : (
             <ExplorerLink address={pda}>View the contract on Solana Explorer ↗</ExplorerLink>
           )}
-          <Link to={`/projects/${pda}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+          <Link to={`/projects/${pda}`} className="text-sm font-medium text-brand-600 hover:text-brand-800">
             ← Back to the project
           </Link>
         </div>

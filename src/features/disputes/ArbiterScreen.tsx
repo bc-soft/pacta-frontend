@@ -42,8 +42,8 @@ export function ArbiterScreen() {
     enabled: !!pda,
   })
 
-  if (view.chain.isPending) return <p className="text-slate-500">Loading dispute from Solana…</p>
-  if (!state || !milestone) return <p className="text-slate-600">Milestone not found.</p>
+  if (view.chain.isPending) return <p className="text-ink-500">Loading dispute from Solana…</p>
+  if (!state || !milestone) return <p className="text-ink-600">Milestone not found.</p>
 
   const project = state.project
   const clientSide = (evidence.data ?? []).filter((e) => e.side === 'client')
@@ -55,10 +55,10 @@ export function ArbiterScreen() {
     <section className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link to={`/projects/${pda}`} className="text-sm font-medium text-indigo-600">
+          <Link to={`/projects/${pda}`} className="text-sm font-medium text-brand-600">
             ← {view.title}
           </Link>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight">
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-balance">
             Dispute: {view.milestoneTitle(milestone.index)}
           </h1>
           <div className="mt-2 flex items-center gap-3">
@@ -69,9 +69,9 @@ export function ArbiterScreen() {
         <RoleBadge view={view} />
       </div>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
+      <section className="card p-5">
         <h2 className="font-semibold">Agreed before work started: done when…</h2>
-        <p className="mt-2 whitespace-pre-line text-sm text-slate-700">
+        <p className="mt-2 whitespace-pre-line text-sm text-ink-700">
           {meta?.acceptanceCriteria || 'No acceptance criteria were recorded.'}
         </p>
         {meta?.deliverables && meta.deliverables.length > 0 && (
@@ -80,10 +80,10 @@ export function ArbiterScreen() {
             <ul className="mt-1 space-y-1 text-sm">
               {meta.deliverables.map((d) => (
                 <li key={d.id}>
-                  <a href={d.url} target="_blank" rel="noreferrer" className="text-indigo-600 underline">
+                  <a href={d.url} target="_blank" rel="noreferrer" className="text-brand-600 underline">
                     {d.url}
                   </a>
-                  {d.note && <span className="text-slate-500"> — {d.note}</span>}
+                  {d.note && <span className="text-ink-500"> — {d.note}</span>}
                 </li>
               ))}
             </ul>
@@ -92,7 +92,7 @@ export function ArbiterScreen() {
         {meta?.comments && meta.comments.length > 0 && (
           <>
             <h3 className="mt-4 text-sm font-semibold">Changes the client asked for</h3>
-            <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">
+            <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-ink-700">
               {meta.comments.map((c) => (
                 <li key={c.id}>{c.comment}</li>
               ))}
@@ -106,9 +106,9 @@ export function ArbiterScreen() {
         <EvidenceColumn title="Team says" items={teamSide} profiles={profiles} />
       </div>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
+      <section className="card p-5">
         <h2 className="font-semibold">Decision</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-ink-600">
           {canDecide
             ? 'Pick one. The contract pays out immediately and the decision is final.'
             : view.role === 'arbiter'
@@ -122,15 +122,15 @@ export function ArbiterScreen() {
             return (
               <label
                 key={r}
-                className={`flex cursor-pointer items-center justify-between gap-4 rounded-lg border p-3 ${
-                  resolution === r ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:bg-slate-50'
+                className={`flex cursor-pointer items-center justify-between gap-4 rounded-xl border p-3 ${
+                  resolution === r ? 'border-brand-500 bg-brand-50' : 'border-ink-200 hover:bg-ink-50'
                 } ${canDecide ? '' : 'cursor-default opacity-70'}`}
               >
                 <span className="flex items-center gap-3">
                   <input type="radio" name="resolution" value={r} checked={resolution === r} onChange={() => setResolution(r)} />
                   <span className="font-medium">{RESOLUTION_LABELS[r]}</span>
                 </span>
-                <span className="text-right text-sm tabular-nums text-slate-600">
+                <span className="text-right text-sm tabular-nums text-ink-600">
                   Team {formatUsdc(team)} · Client {formatUsdc(refund)}
                 </span>
               </label>
@@ -176,24 +176,24 @@ function EvidenceColumn({
   profiles: ReturnType<typeof useProfiles>
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5">
+    <section className="card p-5">
       <h2 className="font-semibold">{title}</h2>
       {items.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-500">Nothing submitted yet.</p>
+        <p className="mt-2 text-sm text-ink-500">Nothing submitted yet.</p>
       ) : (
         <ul className="mt-3 space-y-4">
           {items.map((e) => (
             <li key={e.id} className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <PersonLabel wallet={e.wallet} profile={profiles[e.wallet]} />
-                <span className="text-xs text-slate-400">{dateFormat.format(new Date(e.createdAt))}</span>
+                <span className="text-xs text-ink-400">{dateFormat.format(new Date(e.createdAt))}</span>
               </div>
-              <p className="whitespace-pre-line text-sm text-slate-700">{e.argument}</p>
+              <p className="whitespace-pre-line text-sm text-ink-700">{e.argument}</p>
               {e.links.length > 0 && (
                 <ul className="space-y-0.5 text-sm">
                   {e.links.map((l) => (
                     <li key={l}>
-                      <a href={l} target="_blank" rel="noreferrer" className="break-all text-indigo-600 underline">
+                      <a href={l} target="_blank" rel="noreferrer" className="break-all text-brand-600 underline">
                         {l}
                       </a>
                     </li>

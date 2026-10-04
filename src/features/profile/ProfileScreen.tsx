@@ -46,15 +46,15 @@ export function ProfileScreen() {
   if (!wallet) {
     return (
       <section className="mx-auto max-w-md py-16 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Your profile</h1>
-        <p className="mt-2 text-slate-600">Connect your wallet to set up how clients and teammates see you.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-balance">Your profile</h1>
+        <p className="mt-2 text-ink-600">Connect your wallet to set up how clients and teammates see you.</p>
         <div className="mt-6 flex justify-center">
           <WalletMultiButton />
         </div>
       </section>
     )
   }
-  if (profile.isPending) return <p className="text-slate-500">Loading…</p>
+  if (profile.isPending) return <p className="text-ink-500">Loading…</p>
 
   return <ProfileForm key={wallet} wallet={wallet} initial={profile.data ?? null} loadError={profile.isError} />
 }
@@ -98,17 +98,17 @@ function ProfileForm({ wallet, initial, loadError }: { wallet: string; initial: 
 
   return (
     <section className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold tracking-tight">Your profile</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <h1 className="text-3xl font-bold tracking-tight text-balance">Your profile</h1>
+      <p className="mt-1 text-sm text-ink-600">
         Shown to clients and teammates next to your wallet address. Saving asks your wallet to sign in — no password.
       </p>
       {loadError && <p className="mt-3 text-sm text-amber-800">Couldn&apos;t load your current profile.</p>}
 
-      <div className="mt-6 flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mt-6 flex items-center gap-3 card p-4">
         <Avatar wallet={wallet} profile={{ wallet, displayName: preview.displayName, avatarUrl: preview.avatarUrl || undefined }} />
         <div className="min-w-0">
           <p className="font-medium">{preview.displayName || 'Your name'}</p>
-          <p className="truncate font-mono text-xs text-slate-500">{wallet}</p>
+          <p className="truncate font-mono text-xs text-ink-500">{wallet}</p>
         </div>
       </div>
 

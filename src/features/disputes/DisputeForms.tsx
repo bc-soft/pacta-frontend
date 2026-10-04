@@ -44,12 +44,12 @@ export function OpenDisputeForm({ view, milestone }: { view: ProjectView; milest
   const project = new PublicKey(view.pda)
 
   if (!view.state!.project.arbiter) {
-    return <p className="text-sm text-slate-500">This project has no arbiter, so disputes can&apos;t be opened.</p>
+    return <p className="text-sm text-ink-500">This project has no arbiter, so disputes can&apos;t be opened.</p>
   }
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-ink-600">
         The money stays locked while the arbiter decides. Their decision is final: the team gets 100%, 75%, 50%, 25% or
         0% of this milestone, and the rest goes back to the client.
       </p>

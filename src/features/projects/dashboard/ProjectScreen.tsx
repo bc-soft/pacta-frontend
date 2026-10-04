@@ -20,7 +20,7 @@ export function ProjectScreen() {
       </Message>
     )
   }
-  if (view.chain.isPending) return <p className="text-slate-500">Loading project from Solana…</p>
+  if (view.chain.isPending) return <p className="text-ink-500">Loading project from Solana…</p>
   if (view.chain.isError) return <Message title="Couldn't load the project">{view.chain.error.message}</Message>
   if (!view.state) {
     return (
@@ -47,8 +47,8 @@ function Message({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mx-auto max-w-md py-16 text-center">
       <h1 className="text-xl font-bold">{title}</h1>
-      <p className="mt-2 text-slate-600">{children}</p>
-      <Link to="/" className="mt-6 inline-block text-sm font-medium text-indigo-600">
+      <p className="mt-2 text-ink-600">{children}</p>
+      <Link to="/" className="mt-6 inline-block text-sm font-medium text-brand-600">
         ← Back to projects
       </Link>
     </section>

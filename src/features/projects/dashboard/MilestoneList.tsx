@@ -25,7 +25,7 @@ export function MilestoneList({
       {state.milestones.map((milestone) => {
         const meta = view.milestoneMeta(milestone.index)
         return (
-          <article key={milestone.index} className="rounded-xl border border-slate-200 bg-white p-5">
+          <article key={milestone.index} className="card p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="font-semibold">
                 {milestone.index + 1}. {view.milestoneTitle(milestone.index)}
@@ -37,8 +37,8 @@ export function MilestoneList({
             </div>
 
             {meta?.acceptanceCriteria && (
-              <p className="mt-2 text-sm text-slate-600">
-                <span className="font-medium text-slate-800">Done when: </span>
+              <p className="mt-2 text-sm text-ink-600">
+                <span className="font-medium text-ink-800">Done when: </span>
                 {meta.acceptanceCriteria}
               </p>
             )}
@@ -56,15 +56,15 @@ export function MilestoneList({
             </ul>
 
             {meta?.deliverables && meta.deliverables.length > 0 && (
-              <div className="mt-4 rounded-lg bg-slate-50 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Delivered work</p>
+              <div className="mt-4 rounded-xl bg-ink-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">Delivered work</p>
                 <ul className="mt-2 space-y-1 text-sm">
                   {meta.deliverables.map((d) => (
                     <li key={d.id}>
-                      <a href={d.url} target="_blank" rel="noreferrer" className="text-indigo-600 underline">
+                      <a href={d.url} target="_blank" rel="noreferrer" className="text-brand-600 underline">
                         {d.url}
                       </a>
-                      {d.note && <span className="text-slate-500"> — {d.note}</span>}
+                      {d.note && <span className="text-ink-500"> — {d.note}</span>}
                     </li>
                   ))}
                 </ul>
@@ -76,7 +76,7 @@ export function MilestoneList({
                 <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Requested changes</p>
                 <ul className="mt-1 space-y-1">
                   {meta.comments.map((c) => (
-                    <li key={c.id} className="whitespace-pre-line text-slate-700">
+                    <li key={c.id} className="whitespace-pre-line text-ink-700">
                       {c.comment}
                     </li>
                   ))}

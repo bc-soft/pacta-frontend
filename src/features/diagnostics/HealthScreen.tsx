@@ -25,8 +25,8 @@ export function HealthScreen() {
 
   return (
     <section className="max-w-2xl">
-      <h1 className="text-2xl font-bold tracking-tight">System status</h1>
-      <dl className="mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+      <h1 className="text-3xl font-bold tracking-tight text-balance">System status</h1>
+      <dl className="mt-6 divide-y divide-ink-200 card">
         <Row label="Cluster" ok>
           {env.cluster}
         </Row>
@@ -63,12 +63,12 @@ export function HealthScreen() {
 
 function Row({ label, ok, pending, children }: { label: string; ok: boolean; pending?: boolean; children: ReactNode }) {
   const icon = pending ? '…' : ok ? '✓' : '✗'
-  const tone = pending ? 'text-slate-400' : ok ? 'text-emerald-600' : 'text-rose-600'
+  const tone = pending ? 'text-ink-400' : ok ? 'text-emerald-600' : 'text-rose-600'
   return (
     <div className="flex gap-3 px-4 py-3 text-sm">
       <span className={`w-4 font-bold ${tone}`}>{icon}</span>
       <dt className="w-36 shrink-0 font-medium">{label}</dt>
-      <dd className="min-w-0 break-all text-slate-600">{children}</dd>
+      <dd className="min-w-0 break-all text-ink-600">{children}</dd>
     </div>
   )
 }

@@ -31,7 +31,7 @@ export function NotificationsMenu() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+        className="relative flex size-10 items-center justify-center rounded-xl bg-white text-ink-600 shadow-xs ring-1 ring-ink-200 transition hover:text-ink-900 hover:ring-ink-300"
         aria-label={`Notifications${unread ? ` (${unread} unread)` : ''}`}
       >
         <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
@@ -44,13 +44,13 @@ export function NotificationsMenu() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 z-40 mt-2 w-80 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
+        <div className="absolute right-0 z-40 mt-2 w-80 card p-2 shadow-lg">
           {items.length === 0 ? (
-            <p className="p-3 text-sm text-slate-500">No notifications yet.</p>
+            <p className="p-3 text-sm text-ink-500">No notifications yet.</p>
           ) : (
             <ul className="max-h-96 overflow-y-auto">
               {items.map((n) => (
-                <li key={n.id} className={`rounded-lg p-3 text-sm ${n.read ? '' : 'bg-indigo-50/60'}`}>
+                <li key={n.id} className={`rounded-lg p-3 text-sm ${n.read ? '' : 'bg-brand-50/60'}`}>
                   {n.projectPda ? (
                     <Link
                       to={`/projects/${n.projectPda}`}
@@ -65,7 +65,7 @@ export function NotificationsMenu() {
                   ) : (
                     <p className="font-medium">{n.title}</p>
                   )}
-                  {n.body && <p className="mt-0.5 text-xs text-slate-600">{n.body}</p>}
+                  {n.body && <p className="mt-0.5 text-xs text-ink-600">{n.body}</p>}
                   {n.signature && (
                     <p className="mt-0.5 text-xs">
                       <ExplorerLink signature={n.signature}>Explorer ↗</ExplorerLink>

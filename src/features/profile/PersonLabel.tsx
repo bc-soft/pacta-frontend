@@ -11,7 +11,7 @@ export function PersonLabel({ wallet, profile, role }: { wallet: string; profile
         <span className="block truncate text-sm font-medium">
           {profile?.displayName ?? <ShortAddress address={wallet} />}
         </span>
-        {role && <span className="block truncate text-xs text-slate-500">{role}</span>}
+        {role && <span className="block truncate text-xs text-ink-500">{role}</span>}
       </span>
     </span>
   )

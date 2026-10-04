@@ -27,7 +27,7 @@ export function ClientReview({ view, milestone }: { view: ProjectView; milestone
   ]
 
   return (
-    <div className="rounded-lg border border-violet-200 bg-violet-50/60 p-4">
+    <div className="rounded-xl border border-violet-200 bg-violet-50/60 p-4">
       <p className="text-sm font-medium">The team has submitted this milestone. Does the work meet the “done when” criteria?</p>
       <div className="mt-3 flex flex-wrap gap-2" role="tablist">
         {tabs.map((tab) => (
@@ -38,7 +38,7 @@ export function ClientReview({ view, milestone }: { view: ProjectView; milestone
             aria-selected={mode === tab.id}
             onClick={() => setMode(tab.id)}
             className={`rounded-full px-3 py-1 text-sm font-medium ${
-              mode === tab.id ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-100'
+              mode === tab.id ? 'bg-ink-900 text-white' : 'bg-white text-ink-700 hover:bg-ink-100'
             }`}
           >
             {tab.label}
@@ -64,7 +64,7 @@ function AcceptPanel({ view, milestone }: { view: ProjectView; milestone: ChainM
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-ink-600">
         {formatUsdc(milestone.amount)} will be sent from escrow to the team right away, split as shown above. This
         can&apos;t be undone.
       </p>
@@ -111,7 +111,7 @@ function RequestChangesPanel({ view, milestone }: { view: ProjectView; milestone
           placeholder="Be specific — refer to the “done when” criteria."
         />
       </label>
-      <p className="text-xs text-slate-500">The money stays locked in escrow. The team will submit the work again.</p>
+      <p className="text-xs text-ink-500">The money stays locked in escrow. The team will submit the work again.</p>
       <TxButton
         label="Request changes"
         variant="secondary"

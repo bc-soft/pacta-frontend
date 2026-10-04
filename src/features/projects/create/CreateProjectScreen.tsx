@@ -22,8 +22,8 @@ export function CreateProjectScreen() {
   if (!publicKey) {
     return (
       <section className="mx-auto max-w-md py-16 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Create a project</h1>
-        <p className="mt-2 text-slate-600">Connect your wallet first — you&apos;ll be the client of this project.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-balance">Create a project</h1>
+        <p className="mt-2 text-ink-600">Connect your wallet first — you&apos;ll be the client of this project.</p>
         <div className="mt-6 flex justify-center">
           <WalletMultiButton />
         </div>
@@ -80,7 +80,7 @@ function CreateProjectWizard({ client }: { client: string }) {
 
   return (
     <section className="mx-auto max-w-3xl">
-      <h1 className="text-2xl font-bold tracking-tight">Create a project</h1>
+      <h1 className="text-3xl font-bold tracking-tight text-balance">Create a project</h1>
       <Stepper current={stepIndex} onSelect={setStepIndex} />
 
       <FormProvider {...form}>
@@ -120,7 +120,7 @@ function CreateProjectWizard({ client }: { client: string }) {
 
 function Stepper({ current, onSelect }: { current: number; onSelect: (index: number) => void }) {
   return (
-    <ol className="mt-6 flex flex-wrap gap-2">
+    <ol className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-5">
       {STEPS.map((s, i) => {
         const state = i === current ? 'current' : i < current ? 'done' : 'todo'
         return (
@@ -129,15 +129,21 @@ function Stepper({ current, onSelect }: { current: number; onSelect: (index: num
               type="button"
               disabled={state === 'todo'}
               onClick={() => onSelect(i)}
-              className={`rounded-full px-3 py-1 text-sm font-medium ${
-                state === 'current'
-                  ? 'bg-indigo-600 text-white'
-                  : state === 'done'
-                    ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-                    : 'bg-slate-100 text-slate-400'
-              }`}
+              aria-current={state === 'current' ? 'step' : undefined}
+              className="group w-full text-left disabled:cursor-default"
             >
-              {i + 1}. {s.label}
+              <span
+                className={`block h-1.5 rounded-full transition ${
+                  state === 'todo' ? 'bg-ink-200' : 'bg-brand-500'
+                } ${state === 'current' ? 'shadow-[0_0_0_3px_rgb(43_123_235/0.15)]' : ''}`}
+              />
+              <span
+                className={`mt-2 block text-xs font-semibold ${
+                  state === 'current' ? 'text-brand-700' : state === 'done' ? 'text-ink-700 group-hover:text-brand-700' : 'text-ink-400'
+                }`}
+              >
+                {i + 1}. {s.label}
+              </span>
             </button>
           </li>
         )
@@ -152,8 +158,8 @@ function ProjectCreated({ project, title }: { project: CreatedProject; title: st
       <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-700">
         ✓
       </div>
-      <h1 className="mt-4 text-2xl font-bold tracking-tight">Contract created on-chain</h1>
-      <p className="mt-2 text-slate-600">
+      <h1 className="mt-4 text-3xl font-bold tracking-tight text-balance">Contract created on-chain</h1>
+      <p className="mt-2 text-ink-600">
         “{title}” is now on Solana. Next, every team member opens the project with their wallet and confirms the
         contract. After the last confirmation you can fund the first milestone.
       </p>

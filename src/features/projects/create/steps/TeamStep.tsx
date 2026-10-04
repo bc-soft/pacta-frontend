@@ -19,13 +19,13 @@ export function TeamStep() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-ink-600">
         Add the wallet address of everyone who will do the work and get paid. They don&apos;t need to know each other —
         each person confirms the contract with their own wallet.
       </p>
 
       {publicKey && (
-        <div className="rounded-lg bg-slate-100 px-3 py-2">
+        <div className="rounded-lg bg-ink-100 px-3 py-2">
           <PersonLabel wallet={publicKey.toBase58()} profile={profiles[publicKey.toBase58()]} role="Client (you)" />
         </div>
       )}
@@ -36,7 +36,7 @@ export function TeamStep() {
           const profile = profiles[wallet]
           const memberErrors = errors.members?.[i]
           return (
-            <li key={field.id} className="rounded-xl border border-slate-200 bg-white p-4">
+            <li key={field.id} className="card p-4">
               <div className="grid gap-3 sm:grid-cols-[1fr_12rem_auto] sm:items-start">
                 <div>
                   <input
@@ -69,15 +69,15 @@ export function TeamStep() {
                   type="button"
                   onClick={() => remove(i)}
                   disabled={fields.length === 1}
-                  className="rounded-lg px-2 py-2 text-sm text-slate-500 hover:text-rose-700 disabled:invisible"
+                  className="rounded-lg px-2 py-2 text-sm text-ink-500 hover:text-rose-700 disabled:invisible"
                 >
                   Remove
                 </button>
               </div>
               {profile?.displayName && (
-                <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-3">
+                <div className="mt-3 flex items-center gap-3 border-t border-ink-100 pt-3">
                   <PersonLabel wallet={wallet} profile={profile} role={profile.skills?.join(', ')} />
-                  {profile.bio && <p className="line-clamp-2 text-xs text-slate-500">{profile.bio}</p>}
+                  {profile.bio && <p className="line-clamp-2 text-xs text-ink-500">{profile.bio}</p>}
                 </div>
               )}
             </li>

@@ -92,7 +92,7 @@ export function SubmitMilestone({ view, milestone }: { view: ProjectView; milest
               type="button"
               onClick={() => remove(i)}
               disabled={fields.length === 1}
-              className="px-2 text-sm text-slate-500 hover:text-rose-700 disabled:invisible"
+              className="px-2 text-sm text-ink-500 hover:text-rose-700 disabled:invisible"
             >
               Remove
             </button>
@@ -103,7 +103,7 @@ export function SubmitMilestone({ view, milestone }: { view: ProjectView; milest
       <button
         type="button"
         onClick={() => append({ url: '', note: '' })}
-        className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+        className="text-sm font-medium text-brand-600 hover:text-brand-800"
       >
         + Add another link
       </button>

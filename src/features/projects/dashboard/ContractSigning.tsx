@@ -37,11 +37,11 @@ export function ContractSigning({ view }: { view: ProjectView }) {
     <section className="rounded-xl border border-amber-200 bg-amber-50/50 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold">Contract signatures</h2>
-        <span className="text-sm text-slate-600">
+        <span className="text-sm text-ink-600">
           {signed + 1} of {project.members.length + 1} signed
         </span>
       </div>
-      <p className="mt-1 text-sm text-slate-600">Work can start once everyone in the team has confirmed the contract.</p>
+      <p className="mt-1 text-sm text-ink-600">Work can start once everyone in the team has confirmed the contract.</p>
 
       <ul className="mt-4 space-y-2">
         <SignatureRow done label={<PersonLabel wallet={project.client} profile={profiles[project.client]} role="Client" />} />
@@ -75,7 +75,7 @@ export function ContractSigning({ view }: { view: ProjectView }) {
       <button
         type="button"
         onClick={() => setShowTerms((v) => !v)}
-        className="mt-5 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+        className="mt-5 text-sm font-medium text-brand-600 hover:text-brand-800"
       >
         {showTerms ? 'Hide' : 'Show'} what exactly you are signing
       </button>
@@ -90,9 +90,9 @@ export function ContractSigning({ view }: { view: ProjectView }) {
 
 function SignatureRow({ done, label }: { done: boolean; label: ReactNode }) {
   return (
-    <li className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2">
+    <li className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2">
       {label}
-      <span className={`text-sm font-medium ${done ? 'text-emerald-700' : 'text-slate-400'}`}>
+      <span className={`text-sm font-medium ${done ? 'text-emerald-700' : 'text-ink-400'}`}>
         {done ? '✓ Signed' : 'Waiting'}
       </span>
     </li>

@@ -21,14 +21,14 @@ export function FundMilestone({ view, milestone }: { view: ProjectView; mileston
   const project = new PublicKey(view.pda)
 
   return (
-    <div className="space-y-3 rounded-lg bg-indigo-50/60 p-4">
+    <div className="space-y-3 rounded-xl bg-brand-50/60 p-4">
       <dl className="grid grid-cols-2 gap-3 text-sm sm:max-w-md">
         <div>
-          <dt className="text-slate-500">In your wallet</dt>
+          <dt className="text-ink-500">In your wallet</dt>
           <dd className="font-semibold tabular-nums">{balance.data ? formatUsdc(balance.data) : '…'}</dd>
         </div>
         <div>
-          <dt className="text-slate-500">To lock in escrow</dt>
+          <dt className="text-ink-500">To lock in escrow</dt>
           <dd className="font-semibold tabular-nums">{formatUsdc(milestone.amount)}</dd>
         </div>
       </dl>
@@ -44,7 +44,7 @@ export function FundMilestone({ view, milestone }: { view: ProjectView; mileston
         }
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ['tokenBalance'] })}
       />
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-ink-500">
         The money leaves your wallet and is held by the contract. It is released to the team only when you accept the
         work (or the arbiter decides).
       </p>

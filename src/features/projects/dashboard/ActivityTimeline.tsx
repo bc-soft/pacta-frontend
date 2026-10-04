@@ -65,17 +65,17 @@ export function ActivityTimeline({ pda }: { pda: string }) {
         }))
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5">
+    <section className="card p-5">
       <h2 className="text-lg font-semibold">Activity</h2>
       {rows.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-500">No activity yet.</p>
+        <p className="mt-2 text-sm text-ink-500">No activity yet.</p>
       ) : (
-        <ol className="mt-3 space-y-3 border-l border-slate-200 pl-4">
+        <ol className="mt-3 space-y-3 border-l border-ink-200 pl-4">
           {rows.map((row) => (
             <li key={row.key} className="relative text-sm">
-              <span className="absolute -left-[21px] top-1.5 size-2.5 rounded-full bg-indigo-400" />
+              <span className="absolute -left-[21px] top-1.5 size-2.5 rounded-full bg-brand-400" />
               <p className="font-medium">{row.label}</p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-ink-500">
                 {row.at ? dateFormat.format(row.at) : 'Pending'}
                 {row.signature && (
                   <>

@@ -1,5 +1,78 @@
 @import 'tailwindcss';
 
+/* Brand palette taken from the logo: deep navy ink + the padlock's blue. */
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --color-brand-50: #eef5fe;
+  --color-brand-100: #d9e8fd;
+  --color-brand-200: #bbd6fb;
+  --color-brand-300: #8dbcf8;
+  --color-brand-400: #589af3;
+  --color-brand-500: #2b7beb;
+  --color-brand-600: #1d63d6;
+  --color-brand-700: #1a4fb0;
+  --color-brand-800: #1b438e;
+  --color-brand-900: #1b3b72;
+  --color-brand-950: #142546;
+
+  --color-ink-50: #f4f6fa;
+  --color-ink-100: #e6eaf2;
+  --color-ink-200: #cbd3e1;
+  --color-ink-300: #a3b0c7;
+  --color-ink-400: #7385a3;
+  --color-ink-500: #536583;
+  --color-ink-600: #3f4f6b;
+  --color-ink-700: #2d3b55;
+  --color-ink-800: #1a2840;
+  --color-ink-900: #0a1a30;
+  --color-ink-950: #050e1c;
+}
+
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply min-h-screen bg-ink-50 text-ink-900 antialiased;
+  /* Soft brand glow behind the header, fading into the page */
+  background-image:
+    radial-gradient(60rem 28rem at 15% -8rem, rgb(43 123 235 / 0.13), transparent 70%),
+    radial-gradient(48rem 24rem at 95% -6rem, rgb(10 26 48 / 0.08), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+/* Surface for every panel: white sheet, hairline ring, soft lift */
+@utility card {
+  @apply rounded-2xl bg-white shadow-[0_1px_2px_rgb(10_26_48/0.04),0_8px_24px_-12px_rgb(10_26_48/0.12)] ring-1 ring-ink-900/[0.06];
+}
+
+/* Solana wallet adapter, restyled to the brand. Its stylesheet loads after this one,
+   so these rules win on specificity (body …), not on order. */
+body .wallet-adapter-button-trigger {
+  @apply h-10 rounded-xl bg-ink-900 px-4 font-sans text-sm font-semibold text-white shadow-lg shadow-ink-900/15 transition;
+  line-height: 1;
+}
+body .wallet-adapter-button-trigger:not([disabled]):hover {
+  @apply bg-ink-800;
+}
+body .wallet-adapter-modal-list .wallet-adapter-button {
+  @apply font-sans;
+}
+body .wallet-adapter-dropdown-list {
+  @apply rounded-xl font-sans;
+}
+body .wallet-adapter-dropdown-list-item {
+  @apply rounded-lg font-sans text-sm font-semibold;
+}
+body .wallet-adapter-modal-wrapper {
+  @apply rounded-2xl font-sans;
+}
+body .wallet-adapter-modal-title {
+  @apply font-sans;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }

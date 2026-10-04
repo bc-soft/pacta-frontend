@@ -28,26 +28,26 @@ export function ContractTerms({ terms, profiles }: { terms: ContractTermsData; p
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
+      <section className="card p-5">
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-slate-500">Client</dt>
+            <dt className="text-ink-500">Client</dt>
             <dd className="mt-1">
               <PersonLabel wallet={terms.client} profile={profiles[terms.client]} />
             </dd>
           </div>
           <div>
-            <dt className="text-slate-500">Arbiter</dt>
+            <dt className="text-ink-500">Arbiter</dt>
             <dd className="mt-1">
               {terms.arbiter ? (
                 <PersonLabel wallet={terms.arbiter} profile={profiles[terms.arbiter]} />
               ) : (
-                <span className="text-slate-600">Not set</span>
+                <span className="text-ink-600">Not set</span>
               )}
             </dd>
           </div>
         </dl>
-        <div className="mt-4 rounded-lg bg-indigo-50 px-4 py-3 text-sm">
+        <div className="mt-4 rounded-xl bg-brand-50 px-4 py-3 text-sm">
           Total budget: <strong className="tabular-nums">{formatUsdc(total)}</strong> in {terms.milestones.length}{' '}
           {terms.milestones.length === 1 ? 'milestone' : 'milestones'}. The client locks the money one milestone at a
           time.
@@ -56,7 +56,7 @@ export function ContractTerms({ terms, profiles }: { terms: ContractTermsData; p
 
       <section className="space-y-3">
         {terms.milestones.map((milestone, i) => (
-          <article key={i} className="rounded-xl border border-slate-200 bg-white p-5">
+          <article key={i} className="card p-5">
             <div className="flex items-baseline justify-between gap-4">
               <h4 className="font-semibold">
                 {i + 1}. {milestone.title}
@@ -64,18 +64,18 @@ export function ContractTerms({ terms, profiles }: { terms: ContractTermsData; p
               <span className="font-semibold tabular-nums">{formatUsdc(milestone.amount)}</span>
             </div>
             {milestone.acceptanceCriteria && (
-              <p className="mt-2 text-sm text-slate-600">
-                <span className="font-medium text-slate-800">Done when: </span>
+              <p className="mt-2 text-sm text-ink-600">
+                <span className="font-medium text-ink-800">Done when: </span>
                 {milestone.acceptanceCriteria}
               </p>
             )}
-            <ul className="mt-3 divide-y divide-slate-100 rounded-lg border border-slate-100">
+            <ul className="mt-3 divide-y divide-ink-100 rounded-xl border border-ink-100">
               {milestone.allocations.map((a) => (
                 <li key={a.wallet} className="flex items-center justify-between gap-3 px-3 py-2">
                   <PersonLabel wallet={a.wallet} profile={profiles[a.wallet]} role={roleOf(a.wallet)} />
                   <span className="text-right text-sm tabular-nums">
                     <span className="font-medium">{formatUsdc(shareOf(milestone.amount, a.bps))}</span>
-                    <span className="ml-2 text-slate-500">{a.bps / 100}%</span>
+                    <span className="ml-2 text-ink-500">{a.bps / 100}%</span>
                   </span>
                 </li>
               ))}
@@ -84,9 +84,9 @@ export function ContractTerms({ terms, profiles }: { terms: ContractTermsData; p
         ))}
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
+      <section className="card p-5">
         <h3 className="font-semibold">How it works</h3>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-700">
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-ink-700">
           <li>Work starts once every team member has confirmed this contract with their own wallet.</li>
           <li>
             The client funds each milestone before work on it begins. The money is then locked on Solana — nobody,

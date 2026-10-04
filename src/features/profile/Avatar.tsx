@@ -1,6 +1,6 @@
 import type { Profile } from '../../lib/api'
 
-const COLORS = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-sky-500', 'bg-violet-500']
+const COLORS = ['bg-brand-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-sky-500', 'bg-violet-500']
 
 export function Avatar({ wallet, profile, size = 'md' }: { wallet: string; profile?: Profile; size?: 'sm' | 'md' }) {
   const dimension = size === 'sm' ? 'size-7 text-xs' : 'size-9 text-sm'

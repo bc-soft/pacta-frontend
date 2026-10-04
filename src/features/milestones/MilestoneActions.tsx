@@ -116,7 +116,7 @@ export function MilestoneActions({ view, milestone }: { view: ProjectView; miles
 
     case 'disputed':
       return (
-        <div className="space-y-3 rounded-lg border border-rose-200 bg-rose-50/60 p-4">
+        <div className="space-y-3 rounded-xl border border-rose-200 bg-rose-50/60 p-4">
           <p className="text-sm font-medium text-rose-900">
             In dispute — the arbiter decides how this milestone&apos;s money is split.
           </p>
@@ -128,7 +128,7 @@ export function MilestoneActions({ view, milestone }: { view: ProjectView; miles
           </Link>
           {(role === 'client' || role === 'member') && (
             <details>
-              <summary className="cursor-pointer text-sm font-medium text-slate-700">Add to your side of the story</summary>
+              <summary className="cursor-pointer text-sm font-medium text-ink-700">Add to your side of the story</summary>
               <div className="mt-3">
                 <AddEvidenceForm view={view} milestone={milestone} />
               </div>
@@ -161,7 +161,7 @@ function PayoutLink({ view, milestone }: { view: ProjectView; milestone: ChainMi
 }
 
 export function Hint({ children }: { children: ReactNode }) {
-  return <p className="text-sm text-slate-500">{children}</p>
+  return <p className="text-sm text-ink-500">{children}</p>
 }
 
 /**
@@ -171,8 +171,8 @@ export function Hint({ children }: { children: ReactNode }) {
 function EscalateToArbiter({ view, milestone }: { view: ProjectView; milestone: ChainMilestone }) {
   if (!view.state!.project.arbiter) return null
   return (
-    <details className="rounded-lg border border-slate-200 p-3">
-      <summary className="cursor-pointer text-sm font-medium text-slate-700">Disagree? Ask the arbiter to decide</summary>
+    <details className="rounded-xl border border-ink-200 p-3">
+      <summary className="cursor-pointer text-sm font-medium text-ink-700">Disagree? Ask the arbiter to decide</summary>
       <div className="mt-3">
         <OpenDisputeForm view={view} milestone={milestone} />
       </div>

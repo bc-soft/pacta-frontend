@@ -15,7 +15,7 @@ export function ArbiterStep() {
 
   return (
     <div className="space-y-5">
-      <div className="space-y-2 text-sm text-slate-600">
+      <div className="space-y-2 text-sm text-ink-600">
         <p>
           An arbiter is a neutral person both sides trust. If you and the team can&apos;t agree whether a milestone is
           done, the arbiter reads both sides and decides how the money for that milestone is split.
