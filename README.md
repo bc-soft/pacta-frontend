@@ -21,12 +21,11 @@ Before first use, open `VITE_API_URL` (https://localhost:8443) in the browser an
 | Variable | Description |
 |---|---|
 | `VITE_SOLANA_CLUSTER` | `devnet` |
-| `VITE_SOLANA_RPC_URL` | Helius/other RPC. Don't use `api.devnet.solana.com` for the demo (429 rate limits) |
-| `VITE_PACTA_PROGRAM_ID` | From the program repo after `anchor deploy` |
-| `VITE_USDC_MINT` | Test USDC mint on devnet, same as the backend |
+| `VITE_SOLANA_RPC_URL` | Helius/other RPC with websocket support (transaction confirmation uses `signatureSubscribe`, which Alchemy doesn't serve). Don't use `api.devnet.solana.com` for the demo (429 rate limits) |
+| `VITE_PACTA_PROGRAM_ID` | `AgSfAvkXWBugaYg768AAZdpUT3oNYkx7JQGmZTrUwHWK` (devnet). Must match the IDL in `src/lib/solana/idl/` |
+| `VITE_USDC_MINT` | `6VLBMnVsHDDmg6a4tDqo9X4hMiCAZuuVDYJrivMVjvF9`: test USDC (6 decimals) from the program repo's demo setup, same as the backend |
 | `VITE_API_URL` | Backend, `https://localhost:8443` locally |
 | `VITE_MERCURE_URL` | `https://localhost:8443/.well-known/mercure` |
-| `VITE_USE_FAKE_API` | `true` = in-memory `fakeApi.ts` for the backend endpoints that are still being built |
 
 ## Screens
 
@@ -40,17 +39,20 @@ Before first use, open `VITE_API_URL` (https://localhost:8443) in the browser an
 | `/profile` | everyone | Name, avatar, bio, skills |
 | `/health` | dev | Pre-demo checklist |
 
-All on-chain layout assumptions (account fields, status enums, instruction account names) live in
-`src/lib/solana/accounts.ts` and `src/lib/solana/instructions.ts` — check them against the IDL first.
+Everything the UI knows about the on-chain layout (account fields, status enums, instruction account names) lives in
+`src/lib/solana/accounts.ts` and `src/lib/solana/instructions.ts`, written against the IDL.
+
+Team member roles are a fixed list (`src/lib/roles.ts`): on-chain they are a `u8` index (backend, frontend, design, qa,
+other), in the backend the same names as strings.
 
 ## Program IDL
 
-Copy `target/idl/pacta.json` and `target/types/pacta.ts` from the program repo to `src/lib/solana/idl/` (both are committed).
+Copy `target/idl/pacta.json` and `target/types/pacta.ts` from the program repo to `src/lib/solana/idl/` after every `anchor build` (both are committed). `/health` warns when the IDL address differs from `VITE_PACTA_PROGRAM_ID`.
 
 ## Links
 
 - Backend API docs: https://localhost:8443/api/doc
-- Program repo: _TBD_
+- Program repo: `../pacta-anchor` (README: devnet addresses, demo wallets, `scripts/demo-setup.ts`)
 
 ## Scripts
 
