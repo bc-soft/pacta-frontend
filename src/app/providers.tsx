@@ -4,7 +4,6 @@ import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adap
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { env } from '../env'
-import { ToastProvider } from '../components/toast/ToastProvider'
 import { AuthProvider } from '../features/auth/AuthProvider'
 
 import '@solana/wallet-adapter-react-ui/styles.css'
@@ -25,7 +24,7 @@ export function Providers({ children }: { children: ReactNode }) {
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
             <AuthProvider>
-              <ToastProvider>{children}</ToastProvider>
+              {children}
             </AuthProvider>
           </WalletModalProvider>
         </WalletProvider>

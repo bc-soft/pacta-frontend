@@ -1,5 +1,6 @@
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { NavLink, Outlet } from 'react-router'
+import { ToastProvider } from '../components/toast/ToastProvider'
 import { env } from '../env'
 import { useAuth } from '../features/auth/useAuth'
 import { NotificationsMenu } from '../features/notifications/NotificationsMenu'
@@ -10,7 +11,16 @@ const navClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'bg-ink-900/[0.06] text-ink-900' : 'text-ink-500 hover:bg-ink-900/[0.04] hover:text-ink-900'
   }`
 
+// Toasts live inside the router: live notifications put a <Link> in them, which needs the router context
 export function Layout() {
+  return (
+    <ToastProvider>
+      <Shell />
+    </ToastProvider>
+  )
+}
+
+function Shell() {
   const { sessionExpired, signIn } = useAuth()
   useLiveNotifications()
 
