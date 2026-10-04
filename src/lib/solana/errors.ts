@@ -24,6 +24,15 @@ export function describeTxError(error: unknown): { kind: TxErrorKind; message: s
     return { kind: 'error', message: 'Not enough funds in your wallet' }
   }
 
+  if (error instanceof Error && /429|too many requests|rate limit/i.test(error.message)) {
+    return { kind: 'error', message: 'The Solana network is busy right now. Wait a few seconds and try again.' }
+  }
+  if (error instanceof Error && /expired before it was confirmed|Transaction failed/.test(error.message)) {
+    return { kind: 'error', message: error.message }
+  }
+
+  // Unknown shape: keep the raw error in the console so it can be diagnosed
+  console.error(error)
   return { kind: 'error', message: 'Something went wrong. Please try again.' }
 }
 

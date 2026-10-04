@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { useAuth } from '../../features/auth/useAuth'
 import { api } from '../api'
+import { confirmSignature } from './confirm'
 
 export type TxPhase = 'idle' | 'signing' | 'confirming'
 
@@ -54,8 +55,7 @@ export function useSendAndSync() {
       const signature = await sendTransaction(tx, connection)
 
       onPhase?.('confirming')
-      const { value } = await connection.confirmTransaction({ signature, ...latest }, 'confirmed')
-      if (value.err) throw new Error(`Transaction failed: ${JSON.stringify(value.err)}`)
+      await confirmSignature(connection, signature, latest.lastValidBlockHeight)
 
       await afterConfirmed(pda, [signature])
       return signature
@@ -97,8 +97,7 @@ export function useSendAllAndSync() {
       try {
         for (const tx of signed) {
           const signature = await connection.sendRawTransaction(tx.serialize())
-          const { value } = await connection.confirmTransaction({ signature, ...latest }, 'confirmed')
-          if (value.err) throw new Error(`Transaction failed: ${JSON.stringify(value.err)}`)
+          await confirmSignature(connection, signature, latest.lastValidBlockHeight)
           signatures.push(signature)
         }
       } finally {
