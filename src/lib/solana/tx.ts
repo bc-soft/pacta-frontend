@@ -1,5 +1,5 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import type { PublicKey, Transaction } from '@solana/web3.js'
+import type { Connection, PublicKey, Transaction } from '@solana/web3.js'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { useAuth } from '../../features/auth/useAuth'
@@ -81,8 +81,11 @@ export function useSendAllAndSync() {
       onPhase?.('confirming')
       const signatures: string[] = []
       try {
-        for (const tx of signed) {
-          const signature = await sendSignedTransaction(connection, tx.serialize())
+        for (const [i, tx] of signed.entries()) {
+          const signature = await sendSignedTransaction(connection, tx.serialize()).catch(async (error: unknown) => {
+            await logBlockhashDiagnostics(connection, latest.blockhash, txs[i], tx)
+            throw error
+          })
           await confirmSignature(connection, signature, latest.lastValidBlockHeight)
           signatures.push(signature)
         }
@@ -94,4 +97,22 @@ export function useSendAllAndSync() {
     },
     [connection, wallet, afterConfirmed, signIn],
   )
+}
+
+/** Temporary: pinpoints whose blockhash a rejected transaction carries (ours, or one the wallet put in). */
+async function logBlockhashDiagnostics(connection: Connection, fetched: string, built: Transaction, signed: Transaction) {
+  const valid = (hash: string | undefined) =>
+    hash ? connection.isBlockhashValid(hash, { commitment: 'processed' }).then((r) => r.value, (e: unknown) => String(e)) : 'n/a'
+  console.warn('Pacta tx debug', {
+    rpc: connection.rpcEndpoint.replace(/(v2\/|api-key=)[^/&]+/, '$1<key>'),
+    blockHeight: await connection.getBlockHeight('confirmed').catch(String),
+    fetchedBlockhash: fetched,
+    builtBlockhash: built.recentBlockhash,
+    signedBlockhash: signed.recentBlockhash,
+    fetchedValid: await valid(fetched),
+    signedValid: await valid(signed.recentBlockhash),
+    feePayer: signed.feePayer?.toBase58(),
+    instructions: signed.instructions.map((ix) => ix.programId.toBase58()),
+    signedTxBase64: signed.serialize({ requireAllSignatures: false, verifySignatures: false }).toString('base64'),
+  })
 }
