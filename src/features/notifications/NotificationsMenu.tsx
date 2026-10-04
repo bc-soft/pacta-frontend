@@ -1,3 +1,4 @@
+import { useWallet } from '@solana/wallet-adapter-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router'
@@ -8,10 +9,12 @@ import { useAuth } from '../auth/useAuth'
 /** Bell with the stored notifications. Needs a backend session — we don't force a sign-in just to show it. */
 export function NotificationsMenu() {
   const { isSignedIn } = useAuth()
+  const wallet = useWallet().publicKey?.toBase58()
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const notifications = useQuery({
-    queryKey: ['notifications'],
+    // Per wallet: switching accounts in Phantom must not show (or reuse) the previous wallet's list
+    queryKey: ['notifications', wallet],
     queryFn: api.notifications,
     enabled: isSignedIn,
     retry: false,

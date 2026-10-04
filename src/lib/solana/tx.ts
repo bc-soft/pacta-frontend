@@ -36,7 +36,7 @@ function useAfterConfirmed() {
 /** One path for every program instruction: wallet signs → confirm on chain → backend sync → refetch chain state. */
 export function useSendAndSync() {
   const { connection } = useConnection()
-  const { sendTransaction } = useWallet()
+  const { publicKey, signTransaction } = useWallet()
   const afterConfirmed = useAfterConfirmed()
   const signIn = useBestEffortSignIn()
 
@@ -48,11 +48,18 @@ export function useSendAndSync() {
     ): Promise<string> => {
       onPhase?.('signing')
       await signIn()
+      if (!publicKey || !signTransaction) throw new Error('Wallet does not support signing transactions')
       const tx = await build()
       const latest = await connection.getLatestBlockhash('confirmed')
       // Pin the blockhash we confirm against, so confirmation expiry matches the signed tx
-      if (tx instanceof Transaction && !tx.recentBlockhash) tx.recentBlockhash = latest.blockhash
-      const signature = await sendTransaction(tx, connection)
+      if (tx instanceof Transaction) {
+        if (!tx.recentBlockhash) tx.recentBlockhash = latest.blockhash
+        tx.feePayer ??= publicKey
+      }
+      // Wallet only signs; we send through our own RPC. Phantom's signAndSendTransaction hides program
+      // errors behind "Unexpected error", while our preflight returns the logs describeTxError can read.
+      const signed = await signTransaction(tx)
+      const signature = await connection.sendRawTransaction(signed.serialize())
 
       onPhase?.('confirming')
       await confirmSignature(connection, signature, latest.lastValidBlockHeight)
@@ -60,7 +67,7 @@ export function useSendAndSync() {
       await afterConfirmed(pda, [signature])
       return signature
     },
-    [connection, sendTransaction, afterConfirmed, signIn],
+    [connection, publicKey, signTransaction, afterConfirmed, signIn],
   )
 }
 

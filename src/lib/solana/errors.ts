@@ -5,7 +5,7 @@ import { ApiError } from '../api/client'
 // Anchor error code name → plain English shown to the user. Extend as the program grows.
 const PROGRAM_ERRORS: Record<string, string> = {
   InvalidStatus: 'This milestone is not ready for that action',
-  Unauthorized: 'Only the client can do this',
+  Unauthorized: "Your wallet isn't allowed to do this in this project. Check which account is selected in your wallet.",
 }
 
 export type TxErrorKind = 'cancelled' | 'error'

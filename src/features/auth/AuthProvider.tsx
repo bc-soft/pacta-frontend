@@ -43,9 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setTokens((prev) => ({ ...prev, [forWallet]: value }))
   }, [])
 
-  useEffect(() => {
-    setAuthToken(token)
-  }, [token])
+  // Set during render, not in an effect: children's effects (e.g. the notifications query) run before this
+  // provider's effects, so an effect would let them fire without the token, or with the previous wallet's one.
+  setAuthToken(token)
 
   const signOut = useCallback(() => {
     if (wallet) storeToken(wallet, null)
